@@ -1,6 +1,7 @@
 # RemWorkspace
 
 [中文](README.md) | [English](README.en.md) | 日本語
+<img width="2557" height="1658" alt="image" src="https://github.com/user-attachments/assets/2c8e12e1-713f-45a2-8cbe-7bdc63ee0df1" />
 
 RemWorkspace は、チャット、デスクトップのレム、日記、毎日のタスク、集中タイマーをまとめた、ローカルで使うデスクトップのワークスペースです。メイン画面で話したり、レムについてくる小さな吹き出しに入力したりできます。休憩には農場や五目並べも遊べます。
 
