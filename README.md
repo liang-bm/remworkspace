@@ -2,6 +2,9 @@
 
 中文 | [English](README.en.md) | [日本語](README.ja.md)
 
+因为re0第四季结束我的雷姆又回来了！所以决定做点东西庆祝一下，所以有了这个codex打工打出来了雷姆主题的agent平台！
+<img width="2566" height="1661" alt="image" src="https://github.com/user-attachments/assets/913500ba-4950-44f5-9196-318474e63f44" />
+
 RemWorkspace 是一个本地优先的桌面工作空间，把聊天、雷姆桌宠、日记、每日待办和专注计时放在一起。你可以在主窗口聊天，也可以用跟着她的小气泡随手输入，休息时玩一会儿农场或五子棋。
 
 仓库名是 `remworkspace`，当前软件界面和程序文件仍叫 RemChat，Python 包仍是 `remcompanion`。下面的按钮名、启动命令和文件路径都沿用软件实际名称。
