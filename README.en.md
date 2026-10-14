@@ -2,6 +2,9 @@
 
 [中文](README.md) | English | [日本語](README.ja.md)
 
+<img width="2569" height="1667" alt="image" src="https://github.com/user-attachments/assets/b4dff924-4ce3-4f90-b01f-83fcb2484d24" />
+
+
 RemWorkspace is a local-first desktop workspace with chat, Rem as a desktop companion, a diary, daily tasks and a focus timer. Use the main chat window or the small speech bubble that follows her, then take a break with the farm or Gomoku.
 
 The repository is named `remworkspace`. The app's interface and executables are still named RemChat, and its Python package is `remcompanion`. Button labels, commands and paths below use those current names.
