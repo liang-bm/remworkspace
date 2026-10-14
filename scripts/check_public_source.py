@@ -29,7 +29,7 @@ PRIVATE_DIRECTORIES = {
 }
 TEXT_SUFFIXES = {
     ".c", ".cmd", ".cpp", ".cxx", ".example", ".h", ".ini", ".json",
-    ".md", ".ps1", ".py", ".sh", ".spec", ".toml", ".txt", ".yaml", ".yml",
+    ".iss", ".md", ".ps1", ".py", ".sh", ".spec", ".toml", ".txt", ".yaml", ".yml",
 }
 TEXT_NAMES = {
     ".editorconfig", ".gitattributes", ".gitignore", "authors", "codeowners",

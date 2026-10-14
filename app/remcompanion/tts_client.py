@@ -57,15 +57,27 @@ def build_tts_payload(
         base_profile,
     )
     from .secure_resources import ResourceVault
-    if not profile.reference_audio.is_file() and not ResourceVault(config.root).contains(profile.reference_audio):
+    vault = ResourceVault(config.root)
+    if not profile.reference_audio.is_file() and not vault.contains(profile.reference_audio):
         raise FileNotFoundError(f"TTS 参考音频不存在: {profile.reference_audio}")
+    reference_text = profile.reference_text
+    if not reference_text.strip():
+        transcript = profile.reference_audio.with_suffix(".txt")
+        if vault.contains(transcript):
+            with vault.lease([transcript]) as active:
+                name = transcript.absolute().relative_to(vault.root).as_posix()
+                reference_text = active.paths[name].read_text(encoding="utf-8").strip()
+        elif transcript.is_file() and transcript.stat().st_size <= 16384:
+            reference_text = transcript.read_text(encoding="utf-8").strip()
+        if not reference_text.strip() or len(reference_text) > 4096:
+            raise ValueError("参考音频文字缺失，请重新导入声线素材包")
 
     return {
         "text": normalized_text,
         "text_lang": profile.text_language,
         "ref_audio_path": str(profile.reference_audio),
         "prompt_lang": profile.reference_language,
-        "prompt_text": profile.reference_text,
+        "prompt_text": reference_text,
         "text_split_method": profile.text_split_method,
         "seed": inference.seed,
         "top_k": inference.top_k,

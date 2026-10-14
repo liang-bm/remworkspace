@@ -8,7 +8,9 @@ The repository is named `remworkspace`. The app's interface and executables are 
 
 It runs on Windows and Linux x86_64. Choose simplified Chinese, traditional Chinese, English or Japanese in the interface settings. Some newer screens still have Chinese buttons, so this guide includes their original labels.
 
-This GitHub repository contains source code. It does not include personal records, API keys, character artwork, voices or model weights. Before starting from source, provide your own assets and follow [Run from source](#run-from-source). The pet window cannot start without its character frames.
+For everyday use, download your system's package from [Releases](https://github.com/liang-bm/remworkspace/releases). It includes the pet animations. You can open the app, write a diary, manage tasks, focus and use the farm without installing Python or speech models first. Chat needs your own model service. Speech starts off; install it only when you want spoken replies.
+
+The source repository contains no personal records, API keys, voice weights or model runtime. To run from source, follow [Run from source](#run-from-source); the animation asset pack in Releases can be extracted into the project root.
 
 [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
@@ -20,7 +22,7 @@ If you have a complete program package, open `desktop-app/RemChat.exe` on Window
 2. Open Settings (设置), then General (通用), and choose your Interface language (界面语言).
 3. Open Models & API (模型与 API). For an online model, enter your Base URL, API key and model ID, then choose “保存并启用” (save and enable). Check the model selector below the chat input before sending.
 4. You can also connect an existing local compatible service. To install the local chat model, select “本地 Qwen” and click “安装本地模型”. Follow the page's installation and startup status. Local models need additional disk space and memory.
-5. Return to chat. Enter sends a message; Shift + Enter adds a line. If you have not configured speech playback, turn off “播放” at the top and use text chat.
+5. Return to chat. Enter sends a message; Shift + Enter adds a line. “播放” (speech playback) starts off. Turning it on for the first time opens the speech setup guide; text chat does not need it.
 
 Saving a provider does not test it. “测试连接” and “获取模型” send requests when you click them; your provider may charge for a test. Coding subscriptions have their own usage restrictions and may not work as general chat APIs.
 
@@ -83,7 +85,20 @@ For local recognition, choose a Whisper.cpp `whisper-cli` executable and matchin
 
 On Windows, allow access to the default microphone. On Linux, install at least one of `pw-record`, `parec` or `arecord`, and start RemChat in a desktop session.
 
-“播放” controls reading replies aloud; 中文 / 日本語 selects Chinese or Japanese speech. Playback needs a separate GPT-SoVITS engine, voice models and reference audio. A chat API does not supply Rem's voice. Text chat works with playback turned off.
+### Hear Rem read a reply
+
+Click “播放” at the top of chat, or ♪ in the floating bubble. Both use the same switch and open the speech setup guide. You can choose Not now and keep using text chat.
+
+1. Prepare FFmpeg and a C/C++ compiler. On Windows, get a Windows build from [FFmpeg's official download page](https://ffmpeg.org/download.html), place its extracted `bin` in `engines/ffmpeg/bin` inside the app's installation folder, and keep its DLLs and licenses. Install the C++ workload of [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). On Ubuntu / Debian, run `sudo apt install ffmpeg build-essential`. Two speech dependencies need compilation. RemChat never runs sudo or installs system tools for you.
+2. Choose CPU or NVIDIA GPU and click Install environment. Choose CPU if unsure; GPU needs a driver supporting CUDA 12.8. The installer downloads pinned GPT-SoVITS, a separate Python environment and base models, verifies the files, and checks dependencies. Allow a few GB and some time for the first download. Closing the progress window does not cancel an active install, and speech stays off.
+3. Open Google Drive materials, or visit the [voice download folder](https://drive.google.com/drive/folders/1RvbxWWKFjzlHd4PHGXQU9_3EExOs4DgM). Download `rem-voice-inference-v2pro.voice-parts.json` and all three `rem-voice-inference-v2pro.zip.001`, `.002`, `.003` files into one folder. Keep their names; do not extract them yourself.
+4. Click Import inference pack and select the `.voice-parts.json` manifest. The app verifies and joins the parts, imports the trained weights, reference audio and transcript, then encrypts them with your local account's key. Once ready, choose Enable speech. Use “播放” or ♪ to switch it on and off later.
+
+The inference pack is about 256 MiB. It has produced Chinese and Japanese audio on CPU in a real synthesis check. It contains no original training dataset, and playback needs no retraining. A complete installation on a new machine still depends on system tools, network access and drivers. Setup shows errors if a step fails; text chat remains available.
+
+The logical import paths are `models/tts/rem/gpt/rem-gpt.ckpt`, `models/tts/rem/sovits/rem-sovits.pth`, `voice-source/reference.wav` and `voice-source/reference.txt`. After import, they are kept in the resource vault; your downloaded pack is not deleted. The base engine lives in `engines/GPT-SoVITS` and its separate environment in `runtime/gpt-sovits`. Import the pack on each device rather than copying another account's encrypted files.
+
+中文 / 日本語 chooses Chinese or Japanese playback. Your chat API and the local voice are separate. You can leave speech off permanently if you only want text.
 
 ## Focus and countdown dates
 

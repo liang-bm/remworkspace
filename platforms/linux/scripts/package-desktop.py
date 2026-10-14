@@ -46,6 +46,10 @@ def main():
         shutil.copytree(payload / "desktop-app", stage / "desktop-app", symlinks=True)
         (stage / "config").mkdir()
         shutil.copy2(payload / "config/rem_companion.toml", stage / "config/rem_companion.toml")
+        # Program-owned public download metadata is separate from user settings.
+        # validate() binds it to the review hash before and after copying.
+        if (payload / "config/release.json").is_file():
+            shutil.copy2(payload / "config/release.json", stage / "config/release.json")
         installer = stage / "installer"
         installer.mkdir()
         for name in ("install-desktop.py", "install_files.py"):

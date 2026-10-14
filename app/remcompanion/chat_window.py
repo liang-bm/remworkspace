@@ -1060,6 +1060,7 @@ class ChatWindow(
 
     def _toggle_audio(self) -> None:
         self.audio_enabled.set(not self.audio_enabled.get())
+        self._apply_option_styles()
         if not self.audio_enabled.get():
             self.audio_player.stop()
         self._set_status(

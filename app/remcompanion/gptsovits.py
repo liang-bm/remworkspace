@@ -490,12 +490,22 @@ def _latest_weight(directory: Path, suffix: str) -> Path:
 
 def _write_tts_config(config: AppConfig, gpt_weight: Path, sovits_weight: Path, *, output: Path | None = None) -> Path:
     pretrained = _pretrained_paths(config)
+    from .voice_setup import selected_voice_device
+    device = selected_voice_device(config)
+    if device == "cuda":
+        probe = subprocess.run(
+            [str(config.gpt_python), "-I", "-c",
+             "import torch; raise SystemExit(0 if torch.cuda.is_available() else 1)"],
+            capture_output=True, timeout=30, **_background_process_options(),
+        )
+        if probe.returncode:
+            raise RuntimeError("CUDA 语音环境不可用，请重新安装并选择 CPU")
     content = f"""\
 custom:
   bert_base_path: {_yaml_string(pretrained["bert"])}
   cnhuhbert_base_path: {_yaml_string(pretrained["hubert"])}
-  device: cuda
-  is_half: true
+  device: {device}
+  is_half: {str(device == "cuda").lower()}
   t2s_weights_path: {_yaml_string(gpt_weight)}
   version: v2Pro
   vits_weights_path: {_yaml_string(sovits_weight)}
@@ -554,6 +564,13 @@ def start_tts_api(config: AppConfig, log=print) -> int:
     log_file = config.root / "logs" / "tts-api.log"
     log_file.parent.mkdir(parents=True, exist_ok=True)
     env = _gpt_environment(config)
+    from .voice_setup import selected_voice_device
+    env["is_half"] = str(selected_voice_device(config) == "cuda")
+    language = config.root / "runtime" / "voice-language"
+    if (language / "nltk_data").is_dir():
+        env["NLTK_DATA"] = str(language / "nltk_data")
+    if (language / "open_jtalk_dic_utf_8-1.11").is_dir():
+        env["OPEN_JTALK_DICT_DIR"] = str(language / "open_jtalk_dic_utf_8-1.11")
     api_python = _tts_api_python(config)
     process_options = _background_process_options()
     try:

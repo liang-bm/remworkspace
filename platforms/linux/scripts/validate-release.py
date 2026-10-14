@@ -2,7 +2,9 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
+from urllib.parse import urlsplit
 
 
 def validate(root, private=False):
@@ -41,6 +43,26 @@ def validate(root, private=False):
             and str(review.get("config_sha256", "")).lower() == digest)
     if not approved:
         raise ValueError("Unapproved configuration/assets or configuration hash mismatch")
+    metadata_path = root / "config/release.json"
+    if metadata_path.exists() or metadata_path.is_symlink():
+        if (metadata_path.is_symlink() or not metadata_path.is_file()
+                or metadata_path.stat().st_size > 65536):
+            raise ValueError("Invalid public release metadata file")
+        content = metadata_path.read_bytes()
+        metadata = json.loads(content.decode("utf-8"))
+        if (not isinstance(metadata, dict)
+                or set(metadata) != {"schema", "version", "voice_material_url"}
+                or metadata.get("schema") != 1
+                or not isinstance(metadata.get("version"), str)
+                or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?", metadata["version"])
+                or not isinstance(metadata.get("voice_material_url"), str)):
+            raise ValueError("Invalid public release metadata schema")
+        parsed = urlsplit(metadata["voice_material_url"])
+        if (parsed.scheme != "https" or parsed.hostname not in {"drive.google.com", "docs.google.com"}
+                or parsed.username or parsed.password or parsed.port not in {None, 443}):
+            raise ValueError("Voice material link must be a public Google Drive page")
+        if review.get("release_metadata_sha256") != hashlib.sha256(content).hexdigest():
+            raise ValueError("Public release metadata hash mismatch")
 
 
 if __name__ == "__main__":

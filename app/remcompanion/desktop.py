@@ -29,6 +29,7 @@ from .gptsovits import _tts_api_python
 from .linux_desktop import configure_fonts
 from .ui import theme
 from .ui.activity_tracker import AppActivityTracker
+from .voice_setup_dialog import VoiceEnableGate
 
 
 _LOG_STREAM = None
@@ -127,7 +128,7 @@ def main() -> None:
     )
     audio_enabled = tk.BooleanVar(
         master=root,
-        value=config.companion.autoplay,
+        value=False,  # Playback is user-started; first use prepares voice files.
     )
     overlay_visible = tk.BooleanVar(master=root, value=preferences.overlay_visible)
     task_rings_visible = tk.BooleanVar(master=root, value=preferences.task_rings_visible)
@@ -284,6 +285,9 @@ def main() -> None:
         overlay_window = state.get("overlay")
         cleanups = [("组件安装", close_active_downloads),
                     ("对话服务", service.close), ("语音播放", audio_player.stop)]
+        voice_gate = state.get("voice_gate")
+        if isinstance(voice_gate, VoiceEnableGate):
+            cleanups.insert(0, ("语音准备窗口", voice_gate.close))
         tracker = state.get("activity")
         if isinstance(tracker, AppActivityTracker):
             cleanups.insert(0, ("应用活动监听", tracker.close))
@@ -510,6 +514,13 @@ def main() -> None:
         on_reply_progress=chat.show_external_reply_progress,
     )
     state["overlay"] = overlay
+    state["voice_gate"] = VoiceEnableGate(
+        root, audio_enabled, config,
+        parent=lambda: main_root if main_root.winfo_viewable() else bubble_root,
+        language=lambda: preferences.ui_language,
+        on_status=chat._set_status,
+        on_change=lambda: (chat._on_shared_option_changed(), overlay._refresh_audio_button()),
+    )
     state["activity"] = AppActivityTracker(root, chat.plaza_body.record_activity)
     overlay.set_collapsed(preferences.overlay_collapsed)
     print("[窗口] bubble ready")

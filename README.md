@@ -8,7 +8,9 @@ RemWorkspace 是一个本地优先的桌面工作空间，把聊天、雷姆桌�
 
 支持 Windows 和 Linux x86_64。界面语言在设置里切换，有简体中文、繁體中文、English 和日本語。部分新增页面的按钮仍保留中文，下面的说明使用实际按钮名，方便你找到。
 
-GitHub 仓库提供源码，不附带个人存档、API Key、角色素材、声线或模型。源码启动需要先准备自己的素材和运行环境，步骤在本文的[从源码运行](#从源码运行)一节。角色素材缺失时，桌宠窗口无法启动。
+日常使用请到 [Releases](https://github.com/liang-bm/remworkspace/releases) 下载对应系统的程序包。程序包带桌宠动作，不需要先安装 Python 或语音模型，就能打开界面、写日记、管理待办、专注计时和玩农场。聊天需要配置自己的模型服务。语音默认关闭，想听朗读时再按引导安装。
+
+GitHub 源码不含个人存档、API Key、声线权重或模型运行环境。从源码启动需要准备角色素材和 Python，步骤在本文的[从源码运行](#从源码运行)一节；Release 中的动作素材包可以解压到项目根目录。
 
 [参与贡献](CONTRIBUTING.md) · [安全问题](SECURITY.md)
 
@@ -20,7 +22,7 @@ GitHub 仓库提供源码，不附带个人存档、API Key、角色素材、声
 2. 打开左侧“设置”，在“通用”的“界面语言”里选你习惯的语言。
 3. 到“模型与 API”选择聊天模型。用自己的在线 API 时，填写 Base URL、API Key 和模型 ID，点“保存并启用”，再确认聊天输入栏下方选中了这个模型。
 4. 已有本机兼容服务，可以填它的本机地址。想安装本地聊天模型，选择“本地 Qwen”后点“安装本地模型”，按页面状态完成安装和启动；本地模型需要另占磁盘和内存。
-5. 回到聊天页，输入一句话，按 Enter 发送。Shift + Enter 换行。暂时没有配置朗读声线，可以先关闭顶部“播放”，照常使用文字聊天。
+5. 回到聊天页，输入一句话，按 Enter 发送。Shift + Enter 换行。顶部“播放”初始关闭，不影响文字聊天；第一次打开它会进入语音准备引导。
 
 保存 API 配置不会自动测试。点“测试连接”或“获取模型”才会发请求，所选服务可能收费。编程套餐接口有自己的用途限制，不能当作通用聊天 API 使用。
 
@@ -83,7 +85,20 @@ GitHub 仓库提供源码，不附带个人存档、API Key、角色素材、声
 
 Windows 需要允许应用访问默认麦克风。Linux 使用系统的 `pw-record`、`parec` 或 `arecord`，至少要有其中一种，并在桌面会话中启动。
 
-顶部“播放”控制是否朗读回复，中文 / 日本語选择朗读语言。朗读需要另行准备 GPT-SoVITS 引擎、声线模型和参考音频。配置在线聊天 API 不会同时得到雷姆声线；没有声线时，关闭播放即可。
+### 想听雷姆朗读
+
+点击主聊天顶部的“播放”，或小气泡的 ♪ 按钮，会打开语音准备引导。主窗口和气泡共用同一个开关；暂不开启也可以继续聊天。
+
+1. 先准备 FFmpeg 和 C/C++ 编译工具。Windows 从 [FFmpeg 官网](https://ffmpeg.org/download.html) 选择 Windows 版，把解压后的 `bin` 放在软件安装目录的 `engines/ffmpeg/bin`，保留 DLL 和许可证；另安装 [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) 的 C++ 工作负载。Ubuntu / Debian 可在终端运行 `sudo apt install ffmpeg build-essential`。语音依赖中的两个组件需要编译；软件不会替你运行 sudo 或安装系统工具。
+2. 在引导里选 CPU 或 NVIDIA GPU，点“安装环境”。不确定就选 CPU；GPU 需要支持 CUDA 12.8 的驱动。安装器下载固定版本的 GPT-SoVITS、Python 环境和基础模型，校验后检查依赖。首次下载量较大，请预留几 GB 空间和等待时间。关闭进度窗口不会取消正在进行的安装，语音仍保持关闭。
+3. 点“打开 Google Drive 资料”，或直接进入[声线下载文件夹](https://drive.google.com/drive/folders/1RvbxWWKFjzlHd4PHGXQU9_3EExOs4DgM)。下载 `rem-voice-inference-v2pro.voice-parts.json` 和三个 `rem-voice-inference-v2pro.zip.001`、`.002`、`.003` 文件，放在同一个文件夹，保留原文件名。不要手动解压。
+4. 点“导入推理包”，选择 `.voice-parts.json` 清单。软件会自动校验、合并，导入权重、参考音频及对应文字，再用本机账户密钥加密保存。检查就绪后，点“开启语音”。以后用“播放”或 ♪ 切换即可。
+
+推理包约 256 MiB，已用它完成 CPU 的中文和日文合成验证。它不包含原始训练数据；使用朗读不需要下载训练集，也不用重新训练。全新机器的完整安装仍受系统工具、网络和驱动影响，失败时引导会保留错误信息，文字聊天不受影响。
+
+安装器使用的逻辑路径是 `models/tts/rem/gpt/rem-gpt.ckpt`、`models/tts/rem/sovits/rem-sovits.pth`、`voice-source/reference.wav` 和 `voice-source/reference.txt`；导入后文件进入资源保险库，原下载包不会自动删除。基础引擎在 `engines/GPT-SoVITS`，独立语音环境在 `runtime/gpt-sovits`。不要复制别人的账户密文来代替导入。
+
+中文 / 日本語选择朗读语言。在线聊天 API 和本地声线是两件事，配置聊天 API 不会同时获得声线。只想文字聊天，可以一直关闭语音。
 
 ## 专注和倒计日
 

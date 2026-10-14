@@ -29,7 +29,10 @@ def reject_linked_parents(path):
 
 def program_path(root, relative):
     parts = PurePosixPath(relative).parts
-    allowed = {"Install.sh", "Uninstall.sh", "release.json", "public-release-review.json", "local-build-review.json"}
+    allowed = {
+        "Install.sh", "Uninstall.sh", "release.json", "public-release-review.json", "local-build-review.json",
+        "README.md", "README.en.md", "README.ja.md", "LICENSE", "config/release.json",
+    }
     if (not parts or ".." in parts or "." in parts or relative != PurePosixPath(relative).as_posix()
             or (parts[0] not in {"desktop-app", "installer"} and relative not in allowed)):
         raise ValueError("Unowned program path: " + str(relative))

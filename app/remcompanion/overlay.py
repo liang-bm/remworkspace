@@ -180,8 +180,9 @@ class CompanionOverlay:
             value=config.companion.follow_pet,
         )
         self.audio_enabled = audio_enabled or tk.BooleanVar(
-            master=root, value=config.companion.autoplay
+            master=root, value=False
         )
+        self._voice_gate = None
 
         self._expanded_width = config.companion.window_width
         self._preferred_height = config.companion.window_height
@@ -189,6 +190,14 @@ class CompanionOverlay:
         self.height = self._preferred_height
         self._configure_window()
         self._build_bubble()
+        if audio_enabled is None:
+            from .voice_setup_dialog import VoiceEnableGate
+            from .companion_preferences import load_desktop_preferences
+            self._voice_gate = VoiceEnableGate(
+                root, self.audio_enabled, config, parent=lambda: root,
+                language=lambda: load_desktop_preferences(config.root).ui_language,
+                on_change=self._refresh_audio_button,
+            )
         self._place_fallback()
         self._drain_after_id = self.root.after(70, self._drain_events)
         self._follow_after_id = self.root.after(
@@ -272,6 +281,15 @@ class CompanionOverlay:
             takefocus=True,
         )
         self.collapse_button.pack(side="right")
+        self.audio_button = tk.Button(
+            self.header, text="♪", command=self._toggle_audio, bg=PORCELAIN,
+            fg=MUTED, activebackground=ICE_ACTIVE, activeforeground=BLUE_DEEP,
+            relief="flat", bd=0, width=2, cursor="hand2",
+            font=("Microsoft YaHei UI", 11), takefocus=True,
+        )
+        self.audio_button.pack(side="right")
+        self._audio_trace = self.audio_enabled.trace_add("write", self._refresh_audio_button)
+        self._refresh_audio_button()
         self.reply_panel = tk.Frame(self.root, bg=PORCELAIN)
         self.reply_text = tk.Text(
             self.reply_panel,
@@ -374,6 +392,7 @@ class CompanionOverlay:
             header_font.measure("思考中") + 8
             + self.hide_button.winfo_reqwidth()
             + self.collapse_button.winfo_reqwidth()
+            + self.audio_button.winfo_reqwidth()
             + 2 * metrics.margin_x,
         )
         self.metrics = replace(
@@ -711,9 +730,24 @@ class CompanionOverlay:
         self.busy = False
         self._own_request_active = False
         self._external_request_active = False
+        self.audio_enabled.trace_remove("write", self._audio_trace)
+        if self._voice_gate is not None:
+            self._voice_gate.close()
         if self._owns_service:
             self.service.close()
         if self._owns_audio_player:
+            self.audio_player.stop()
+
+    def _refresh_audio_button(self, *_args) -> None:
+        if not self._closed.is_set() and self.audio_button.winfo_exists():
+            enabled = self.audio_enabled.get()
+            self.audio_button.configure(fg=BLUE_DEEP if enabled else MUTED,
+                                        bg=ICE_ACTIVE if enabled else PORCELAIN)
+
+    def _toggle_audio(self) -> None:
+        self.audio_enabled.set(not self.audio_enabled.get())
+        self._refresh_audio_button()
+        if not self.audio_enabled.get():
             self.audio_player.stop()
 
     def _apply_reply(

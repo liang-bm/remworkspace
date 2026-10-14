@@ -72,7 +72,7 @@ $Artifact = Join-Path $OutputDirectory "RemChat-$Version-windows-x64-$Suffix.exe
 if ((Test-Path -LiteralPath $Artifact) -or (Test-Path -LiteralPath "$Artifact.sha256")) {
     throw "Existing Setup artifact preserved: $Artifact"
 }
-$CompilerArguments = @("/DReleaseRoot=$ReleaseRoot", "/DAppVersion=$Version", "/DOutputDirectory=$OutputDirectory")
+$CompilerArguments = @('/Q', "/DReleaseRoot=$ReleaseRoot", "/DAppVersion=$Version", "/DOutputDirectory=$OutputDirectory")
 if ($VerificationBuild) { $CompilerArguments += '/DVerificationBuild' }
 if ($PrivateLocalBuild) { $CompilerArguments += '/DPrivateLocalBuild' }
 & $IsccPath @CompilerArguments (Join-Path $PSScriptRoot 'RemChat.iss')
