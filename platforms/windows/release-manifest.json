@@ -1,0 +1,17 @@
+{
+  "platform": "windows",
+  "architecture": "x64",
+  "desktop_spec": "platforms/windows/RemCompanion.spec",
+  "desktop_build": "platforms/windows/Build-Desktop.ps1",
+  "setup_build": "platforms/windows/Build-Setup.ps1",
+  "setup_compiler": "Pinned Inno Setup 6.7.3, opt-in project-local Setup-Compiler.ps1; never installed by Build-Setup",
+  "compiler_setup": "platforms/windows/scripts/Setup-Compiler.ps1",
+  "private_local_gate": "Explicit -PrivateLocalBuild and local-build-review.json bound to config/executable hashes; distinct local-only AppId, no public redistribution rights",
+  "release_payload": ["desktop-app/RemChat.exe", "desktop-app/_internal", "config/rem_companion.toml (reviewed public default only)"],
+  "excluded_user_content": ["models", "runtime", "engines", "rem-voice", "rem-voice2", "data", "background", "config/secrets.json"],
+  "public_release_gate": "public-release-review.json: reviewed public config hash plus affirmative redistribution-rights attestation; current Rem assets are not preapproved",
+  "latest_private_artifact": "releases/windows/local-20261003-companion/RemChat-0.2.2-windows-x64-local-setup.exe",
+  "latest_private_sha256": "e638b07da5486c8a548a9e89016421cdbca03a1360b697e25181564c6a66fd23",
+  "verification_log": "docs/remchat-20261003-companion-idle-task-log.md",
+  "status": "Application-local idle tracking and passive-notice delivery verified in 44 deployed Tk checks; original 74+6 regressions and 1471 publication checks (mostly runtime fingerprints) passed. Latest private Setup compiled/checksummed; installer template unchanged, but this version's Setup lifecycle has not been rerun. Previous 0.2.1 lifecycle evidence remains separate. No new external GUI click/screenshot/graceful-close result; public rights/signing/wizard visual QA unverified"
+}

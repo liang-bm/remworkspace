@@ -1,0 +1,39 @@
+name: Feature request
+description: Describe something you want to do. 中文、日本語での提案も歓迎します。
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing requests first. Describe one use case per issue, and use invented examples without private records or credentials.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Explain your task and where the current app gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the interaction you would like, including where you expect to find it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternatives
+      description: Optional. Explain what you do today or link another app's public example.
+  - type: input
+    id: platform
+    attributes:
+      label: Relevant platform or screen
+      description: Optional. Say whether this concerns Windows, Linux or a particular screen.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before posting
+      options:
+        - label: I checked existing requests and removed private information from this proposal and its attachments.
+          required: true

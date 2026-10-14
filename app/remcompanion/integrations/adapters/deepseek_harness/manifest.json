@@ -1,0 +1,6 @@
+{
+  "id": "deepseek_harness", "name": "DeepSeek Harness", "level": "experimental-wrapper",
+  "platforms": ["windows", "linux"], "mechanism": "explicit noninteractive batch wrapper or marker",
+  "sources": ["https://github.com/deepseek-ai/deepseek-harness", "https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/core/agent/README.md"],
+  "limitations": "官方 agent/turn-stopping 可继续回合，agent/request-error 可能重试，assistant-stream end 是单次尝试，均不能直接当最终任务完成或失败。"
+}

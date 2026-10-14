@@ -1,0 +1,6 @@
+{
+  "id": "opencode", "name": "OpenCode", "level": "protocol-verified",
+  "platforms": ["windows", "linux"], "mechanism": "local event plugin + batch wrapper",
+  "sources": ["https://opencode.ai/docs/plugins/", "https://github.com/anomalyco/opencode/blob/dev/packages/sdk/js/src/v2/gen/types.gen.ts"],
+  "limitations": "必须填写精确 session ID 并启用导出的插件。session.idle 只表示该会话本轮空闲；未在已安装 OpenCode 宿主中联网跑模型。"
+}

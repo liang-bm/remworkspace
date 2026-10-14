@@ -1,0 +1,4 @@
+# CPython 3.10 / Windows amd64 only. SHA256 checked against official PyTorch
+# cu128 indexes on 2026-10-04; do not replace these with mirror-provided hashes.
+torch==2.8.0+cu128 --hash=sha256:43938e9a174c90e5eb9e906532b2f1e21532bbfa5a61b65193b4f54714d34f9e
+torchaudio==2.8.0+cu128 --hash=sha256:5d7a9d913e2744573ed3b7ec2f781ed39833c81c9c41859973ec10ac174c2366

@@ -1,0 +1,6 @@
+{
+  "id": "zcode", "name": "ZCode (z.ai)", "level": "partial-native",
+  "platforms": ["windows", "linux"], "mechanism": "UserPromptSubmit process hook + batch wrapper",
+  "sources": ["https://zcode.z.ai/en/docs/hooks", "https://github.com/zai-org/ZCode"],
+  "limitations": "Stop 是结束前可被拦截的检查，不能证明实际结束，因此不注册完成 Hook。UserPromptSubmit 可观察开始，真实结束用单次批处理 wrapper 或用户产物 marker。"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "chatgpt", "name": "ChatGPT / Codex App", "level": "experimental-marker",
+  "platforms": ["windows", "linux"], "mechanism": "explicit work-product marker or notify helper",
+  "sources": ["https://openai.com/chatgpt/"],
+  "limitations": "不假设 ChatGPT 网页/桌面提供本机任务 Hook，不抓取私有会话日志，不用窗口/进程关闭推断模型完成。Linux 无桌面宿主兼容保证。"
+}

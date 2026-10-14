@@ -1,0 +1,4 @@
+# Windows only. TorchAudio 2.9+ requires TorchCodec for audio I/O. TorchCodec currently has
+# no official Windows wheel, so keep the last native Windows audio-I/O release.
+torch==2.8.0
+torchaudio==2.8.0

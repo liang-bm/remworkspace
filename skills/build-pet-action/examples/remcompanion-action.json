@@ -1,0 +1,17 @@
+{
+  "action_name": "coquettish",
+  "grid": {
+    "columns": 5,
+    "rows": 2,
+    "label_strip_px": 32
+  },
+  "background": {
+    "mode": "corner",
+    "tolerance": 28
+  },
+  "sequence": {
+    "mode": "mirror_second_pass",
+    "frame_duration_ms": 150
+  },
+  "hook": "../hooks/remcompanion.json"
+}

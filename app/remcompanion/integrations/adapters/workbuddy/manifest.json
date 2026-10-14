@@ -1,0 +1,6 @@
+{
+  "id": "workbuddy", "name": "WorkBuddy", "level": "experimental-marker",
+  "platforms": ["windows", "linux"], "mechanism": "explicit marker/helper; CLI batch fallback only when available",
+  "sources": ["https://www.workbuddy.ai/document/cross-device-tasks", "https://www.workbuddy.ai/docs/cli/release-notes/v2.152.0"],
+  "limitations": "官方 WorkBuddy 与 CodeBuddy CLI 页面有关联，但不能据此保证 WorkBuddy 桌面提供相同 hooks；未伪造桌面 Hook，Linux 仅通用桥接兼容。"
+}

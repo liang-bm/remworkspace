@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Pet Action"
+  short_description: "Generate, slice, validate, and install pet action frames"
+  default_prompt: "Use $build-pet-action to turn my action idea into validated pet animation frames."

@@ -1,0 +1,6 @@
+{
+  "id": "claude_code", "name": "Claude Code", "level": "partial-native",
+  "platforms": ["windows", "linux"], "mechanism": "native hooks + batch wrapper",
+  "sources": ["https://code.claude.com/docs/en/hooks"],
+  "limitations": "Windows Claude 2.1.34 + 本机协议桩实际开始/Stop通过，未运行付费模型。默认旧版 command 配置；新 args/StopFailure 单独草稿。Stop 不当完成；Linux 仅验证通知脚本，未验证宿主。"
+}

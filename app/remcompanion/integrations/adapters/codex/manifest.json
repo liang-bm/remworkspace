@@ -1,0 +1,6 @@
+{
+  "id": "codex", "name": "Codex CLI", "level": "protocol-verified",
+  "platforms": ["windows", "linux"], "mechanism": "explicit exec --json JSONL wrapper",
+  "sources": ["https://learn.chatgpt.com/docs/non-interactive-mode", "https://learn.chatgpt.com/docs/app-server"],
+  "limitations": "只围绕明确 exec --json，turn.completed + exit0才成功。Windows实际CLI0.159.2+隔离本机协议桩已通过；没有付费模型验证。Linux已测Python通知/观察桥，未验证实际宿主版本。"
+}

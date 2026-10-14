@@ -1,0 +1,6 @@
+{
+  "id": "hermes", "name": "Hermes Agent", "level": "partial-native",
+  "platforms": ["windows", "linux"], "mechanism": "gateway agent:start/end hooks + CLI batch fallback",
+  "sources": ["https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/hooks.md", "https://github.com/NousResearch/hermes-agent/blob/main/hermes_cli/plugins.py"],
+  "limitations": "gateway hooks 不作用于 Hermes CLI；原生 gateway 必须指定 session ID。CLI pre/post_llm_call 是单次调用、session_end是会话关闭，不能伪作每任务完成。"
+}

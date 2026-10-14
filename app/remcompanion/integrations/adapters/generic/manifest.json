@@ -1,0 +1,5 @@
+{
+  "id": "generic", "name": "通用本机任务", "level": "process-verified",
+  "platforms": ["windows", "linux"], "mechanism": "explicit batch wrapper / marker / notify helper",
+  "sources": [], "limitations": "用户明确声明单次 batch 后才运行；不从 GUI/TUI 或模型服务的进程退出推断任务完成。"
+}
