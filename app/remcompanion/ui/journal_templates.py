@@ -1,13 +1,16 @@
 """Local journal template manager; weekday rules materialize once per day."""
 import tkinter as tk
 import sqlite3
-from tkinter import ttk, messagebox
+from tkinter import ttk
+from .localized_dialogs import messagebox
 from .diary_widgets import _frame,_label,_button,_entry,_Toolbar
 from .rich_journal_editor import RichJournalEditor
 from .rounded_controls import style_checkbox
 from . import theme
 from ..plaza.journal_document import validate_document
 from ..plaza.diary import DiaryError
+from .locale_controller import translator_for
+from ..i18n import weekday_labels
 
 
 def edit_templates(parent,store,on_apply,on_saved):
@@ -25,7 +28,7 @@ def edit_templates(parent,store,on_apply,on_saved):
     bar=_frame(form);bar.grid(row=2,column=0,sticky='ew',pady=(0,12))
     check=tk.Checkbutton(bar,text='按星期自动填入新日记',variable=enabled,bg=theme.WHITE,fg=theme.INK,font=(theme.BODY_FONT,10));check.pack(anchor='w');style_checkbox(check)
     week=_frame(bar);week.pack(fill='x',pady=(5,0))
-    for index,label in enumerate('一二三四五六日'):
+    for index,label in enumerate(weekday_labels(translator_for(parent).language, compact=True)):
         c=tk.Checkbutton(week,text=label,variable=days[index],bg=theme.WHITE,fg=theme.INK,font=(theme.BODY_FONT,10));c.pack(side='left',padx=3);style_checkbox(c)
     _label(form,'固定待办 · 每行一项',bold=True).grid(row=3,column=0,sticky='w',pady=(0,5))
     tasks=tk.Text(form,height=4,wrap='word',undo=True,bd=0,font=(theme.BODY_FONT,11),bg=theme.APP_BG,fg=theme.INK,insertbackground=theme.INK,padx=12,pady=10)

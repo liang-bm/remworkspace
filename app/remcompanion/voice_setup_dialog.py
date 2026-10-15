@@ -111,7 +111,44 @@ _MISSING_COPY = {
 }
 
 
+_HANT = {
+    'title': '開啟語音', 'heading': '讓回覆讀出來',
+    'intro': '先準備本機語音環境，再匯入小型推論包。文字聊天和桌寵現在就能使用，不必開啟語音。',
+    'environment': '1 · 安裝語音環境',
+    'environment_help': '由你點擊後下載 GPT-SoVITS 和基礎模型。第一次需要網路、磁碟空間和一些時間。',
+    'cpu': 'CPU · 相容性優先', 'cuda': 'NVIDIA GPU · CUDA 12.8',
+    'device_help': '不確定就選 CPU。GPU 選項需要支援 CUDA 12.8 的 NVIDIA 驅動程式。',
+    'install': '安裝環境', 'ffmpeg': '取得 FFmpeg',
+    'ffmpeg_windows': '先準備 FFmpeg：從官網取得 Windows 版，把解壓縮後的 bin 資料夾放到軟體的 engines/ffmpeg/bin；同目錄的 DLL 和授權文件也要保留。安裝語音環境前會檢查它，不會自動下載 FFmpeg。',
+    'ffmpeg_linux': '先準備 FFmpeg：Ubuntu / Debian 可在終端機執行 sudo apt install ffmpeg；其他 Linux 請使用系統套件管理器。安裝前會檢查 FFmpeg，不會替你執行 sudo。',
+    'pack': '2 · 匯入語音推論包',
+    'pack_help': '只需要發布者提供的推論包：訓練好的權重、參考音訊和對應文字。如果是分卷，把全部分卷和 .voice-parts.json 清單下載到同一個資料夾，再選擇清單匯入；不要手動解壓縮。不要匯入完整訓練資料集或帳戶設定。',
+    'materials': '開啟 Google Drive 資料',
+    'no_link': '資料連結尚未設定。你仍可匯入自己有權使用的推論包。',
+    'folder': '開啟下載資料夾', 'import': '匯入推論包',
+    'choose': '選擇語音推論包 ZIP 或分卷清單', 'check': '重新檢查',
+    'enable': '開啟語音', 'later': '暫不開啟', 'hide': '隱藏進度 · 語音保持關閉',
+    'busy_help': '關閉此視窗不會取消正在執行的安裝或匯入；工作會繼續，語音仍保持關閉。再次點擊播放可回來查看。',
+    'checking': '正在檢查語音檔案…', 'working': '正在準備，請稍候…',
+    'ready': '檔案已就緒，可以開啟語音。', 'missing': '還需要準備：',
+    'error': '這一步沒有完成。查看下方詳細資訊後可以重試；文字聊天不受影響。',
+    'enabled': '自動語音已開啟', 'pending': '語音尚未開啟 · 請先完成語音準備',
+    'logs': '準備進度',
+}
+_MISSING_HANT = {
+    'FFmpeg 音频工具': 'FFmpeg 音訊工具', '语音引擎运行环境': '語音引擎執行環境',
+    '语音引擎版本': '語音引擎版本', '语音环境配置': '語音環境設定',
+    'GPT-SoVITS 引擎': 'GPT-SoVITS 引擎', '基础语音模型': '基礎語音模型',
+    '中文 / 日文语言资源': '中文 / 日文語言資源', 'GPT 声线权重': 'GPT 聲線權重',
+    'SoVITS 声线权重': 'SoVITS 聲線權重', '声线参考音频': '聲線參考音訊',
+    '参考音频文字': '參考音訊文字', '已验证的声线素材包': '已驗證的聲線素材包',
+    '本机安全密钥或声线权限': '本機安全金鑰或聲線權限',
+}
+
+
 def _text(key: str, language: str) -> str:
+    if language == 'zh-Hant':
+        return _HANT[key]
     return _COPY[key][1 if language == "en" else 2 if language == "ja" else 0]
 
 
@@ -164,6 +201,28 @@ class VoiceSetupDialog:
 
     def tr(self, key: str) -> str:
         return _text(key, self.language)
+
+    def set_language(self, language: str) -> None:
+        if self._closed or language == self.language:
+            return
+        previous = self.language
+        replacements = {_text(key, previous): _text(key, language) for key in _COPY}
+        self.language = language
+        self.window.title(self.tr('title'))
+        def visit(widget):
+            if isinstance(widget, (tk.Label, tk.Button, tk.Radiobutton)):
+                text = str(widget.cget('text'))
+                if text in replacements:
+                    widget.configure(text=replacements[text])
+            for child in widget.winfo_children():
+                visit(child)
+        visit(self.window)
+        status = self.status.get()
+        if status in replacements:
+            self.status.set(replacements[status])
+        elif status.startswith(_text('missing', previous)):
+            self._apply_readiness(self._readiness)
+
 
     def _build(self) -> None:
         # Actions stay reachable on short displays; content uses the same
@@ -299,7 +358,9 @@ class VoiceSetupDialog:
         for value in readiness.get("missing", []):
             label = str(value)
             translations = _MISSING_COPY.get(label)
-            if translations and self.language in {"en", "ja"}:
+            if self.language == 'zh-Hant':
+                label = _MISSING_HANT.get(label, label)
+            elif translations and self.language in {"en", "ja"}:
                 label = translations[0 if self.language == "en" else 1]
             missing.append(label)
         self.status.set(self.tr("ready") if ready else self.tr("missing") + "\n" + " · ".join(missing))
@@ -467,6 +528,10 @@ class VoiceEnableGate:
         audio_enabled.set(False)
         self._trace = audio_enabled.trace_add("write", self._changed)
         self._destroy_binding = root.bind("<Destroy>", self._destroyed, add=True)
+
+    def retranslate(self) -> None:
+        if self._dialog is not None:
+            self._dialog.set_language(self.language())
 
     def _set_audio(self, value: bool) -> None:
         self._muted = True

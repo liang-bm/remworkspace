@@ -9,7 +9,8 @@ import queue
 import threading
 import tkinter as tk
 from .soft_fields import SoftEntry
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog, messagebox
 
 from ..plaza.dictionaries import LocalDictionaries
 from ..plaza.words import WordDeck

@@ -10,7 +10,8 @@ import time
 from pathlib import Path
 import tkinter as tk
 from .soft_fields import SoftTtkEntry
-from tkinter import filedialog, font as tkfont, ttk
+from tkinter import font as tkfont, ttk
+from .localized_dialogs import filedialog
 
 from . import theme
 from .dpi import pixels

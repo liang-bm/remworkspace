@@ -20,6 +20,8 @@ from .rounded_controls import rounded_box
 from .selection_feedback import Tooltip
 from .theme_controller import set_color_roles
 from .token_activity_data import build_activity
+from .locale_controller import translator_for
+from ..i18n import weekday_labels
 
 PERIODS = {"近 7 天": 7, "近 30 天": 30, "近 90 天": 90, "近一年": 365}
 
@@ -63,6 +65,7 @@ class TokenActivity(tk.Frame):
         self._clone, self.data, self.draw_count = None, None, 0
         self._geometry, self._rendering = {}, False
         self._usage_revision, self._data_key, self._layout_key = 0, None, None
+        self._remchat_retranslate = self._language_changed
         self._content_key, self._view_key = None, None
         self._metric_font = tkfont.Font(self, family=theme.BODY_FONT, size=22, weight="bold")
         self._axis_font = tkfont.Font(self, family=theme.BODY_FONT, size=9)
@@ -210,6 +213,10 @@ class TokenActivity(tk.Frame):
         self.model_choice.dismiss_popup()
         self._schedule()
 
+    def _language_changed(self):
+        self._signature = None
+        self._schedule()
+
     def _filter_changed(self, _event=None):
         self._end = ""
         self._schedule()
@@ -278,7 +285,8 @@ class TokenActivity(tk.Frame):
         if self.period_line.cget("text") != period_text:
             self.period_line.configure(text=period_text)
         geometry = tuple((canvas.winfo_width(), canvas.winfo_height()) for canvas in (self.trend, self.series, self.models))
-        signature = (data, width, geometry, theme.get_mode(), self._view, self._usage is None)
+        signature = (data, width, geometry, theme.get_mode(), self._view, self._usage is None,
+                     translator_for(self).language)
         if signature == self._signature:
             return
         self._signature = signature
@@ -455,14 +463,16 @@ class TokenActivity(tk.Frame):
         canvas.configure(height=top + height * 7 + pixels(self, 8))
         maximum = max((row["tokens"].get("total_tokens") or 0 for row in rows), default=0)
         previous_month, previous_label = None, -100
-        for weekday, text in ((0, "一"), (2, "三"), (4, "五"), (6, "日")):
+        days = weekday_labels(translator_for(self).language, compact=True)
+        for weekday in (0, 2, 4, 6):
+            text = days[weekday]
             canvas.create_text(4, top + (weekday + .5) * height, text=text, anchor="w", fill=colors["MUTED"], font=(theme.BODY_FONT, 9), tags="theme-fixed")
         for index, row in enumerate(rows):
             day = date.fromisoformat(row["date"])
             position = index + offset
             x, y = left + position // 7 * cell, top + position % 7 * height
             if day.month != previous_month and x - previous_label > pixels(self, 35):
-                canvas.create_text(x, 10, anchor="w", text=f"{day.month}月", fill=colors["MUTED"], font=(theme.BODY_FONT, 9), tags="theme-fixed")
+                canvas.create_text(x, 10, anchor="w", text=self.tr(f"{day.month}月"), fill=colors["MUTED"], font=(theme.BODY_FONT, 9), tags="theme-fixed")
                 previous_label = x
             previous_month = day.month
             value = row["tokens"].get("total_tokens")

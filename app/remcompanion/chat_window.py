@@ -7,7 +7,7 @@ import queue
 import threading
 import tkinter as tk
 import uuid
-from tkinter import messagebox
+from .ui.localized_dialogs import messagebox
 
 from .audio_player import EphemeralAudioPlayer
 from .chat_background import discover_background_files
@@ -300,6 +300,7 @@ class ChatWindow(
         set_color_roles(self.guide_button, background="SIDEBAR", foreground="ACCENT_DEEP",
                         activebackground="ACCENT_SOFT", activeforeground="ACCENT_DEEP")
         self.guide_button.grid(row=0, column=2, sticky="e", padx=(pixels(self.root, 4), 0))
+        self.guide_button._remchat_ui_sources = {'text': '指南'}
 
         section = tk.Frame(self.sidebar, bg=SIDEBAR)
         section.pack(fill="x", padx=18, pady=(0, 8))
@@ -1028,9 +1029,7 @@ class ChatWindow(
         self._show_chat()
 
     def _set_status(self, text: str, *, error: bool = False) -> None:
-        self.status_label.configure(text=text, fg=ERROR if error else MUTED)
-        if hasattr(self, "_locale_controller"):
-            self._locale_controller.apply()
+        self.status_label.configure(text=self.translator.display(text), fg=ERROR if error else MUTED)
 
     def _update_stats(
         self,
@@ -1060,7 +1059,6 @@ class ChatWindow(
 
     def _toggle_audio(self) -> None:
         self.audio_enabled.set(not self.audio_enabled.get())
-        self._apply_option_styles()
         if not self.audio_enabled.get():
             self.audio_player.stop()
         self._set_status(
@@ -1071,7 +1069,7 @@ class ChatWindow(
         visible = self.overlay_visible.get()
         overlay_text = "悬浮窗 开" if visible else "悬浮窗 关"
         self.overlay_button.configure(
-            text=overlay_text,
+            text=self.translator(overlay_text),
             bg=ACCENT_SOFT if visible else "#EEF1F4",
             fg=ACCENT_DEEP if visible else MUTED,
             activebackground="#DCEFFA",
@@ -1093,7 +1091,7 @@ class ChatWindow(
         audio_text = "♪ 播放开" if enabled else "♪ 播放关"
         for button in (self.audio_button,):
             button.configure(
-                text=audio_text,
+                text=self.translator(audio_text),
                 bg="#FFF1F5" if enabled else "#EEF1F4",
                 fg=ROSE if enabled else MUTED,
                 activebackground="#FBE4EB",
@@ -1126,7 +1124,7 @@ class ChatWindow(
             activebackground="#DCEFFA",
             activeforeground=ACCENT_DEEP,
         )
-        self._set_status(f"联网搜索已{'开启' if enabled else '关闭'}")
+        self._set_status("联网搜索已开启" if enabled else "联网搜索已关闭")
         self._retouch_theme()
 
     def _on_return(self, event) -> str | None:
@@ -1492,7 +1490,12 @@ class ChatWindow(
         except queue.Empty:
             pass
         if had_events and hasattr(self, "_locale_controller"):
-            self._locale_controller.schedule()
+            # Network/status ticks do not need to retranslate thousands of
+            # unchanged controls. Newly mapped widgets enrol independently.
+            for name in ('provider_status', 'cache_status', 'memory_status'):
+                widget = getattr(self, name, None)
+                if widget is not None and widget.winfo_exists():
+                    self._locale_controller.schedule_widget(widget)
         try:
             self._drain_after_id = self.root.after(70, self._drain_events)
         except tk.TclError:

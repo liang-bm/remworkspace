@@ -17,7 +17,8 @@ import queue
 import tkinter as tk
 from .font_source import native_font
 import tkinter.font as tkfont
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog, messagebox
 from uuid import uuid4
 
 from ..plaza.diary import (DiaryEntry, DiaryError, DiaryStore, MOODS,
@@ -30,6 +31,7 @@ from .diary_preview import DiaryPreview
 from .diary_widgets import _frame, _label, _entry, _button, _Toolbar
 from .settings_card import SettingsCard
 from .theme_controller import set_color_roles
+from .locale_controller import translator_for
 
 
 _SAVE_ERRORS = (DiaryError, OSError, sqlite3.Error, UnicodeError)
@@ -792,7 +794,8 @@ class DiaryPanel(tk.Frame):
         rows = calendar.Calendar(firstweekday=0).monthdayscalendar(self._month.year, self._month.month)
         column_width, row_height = width / 7, height / (len(rows) + 1)
         self._calendar_cells = []
-        for column, label in enumerate("一二三四五六日"):
+        from ..i18n import weekday_labels
+        for column, label in enumerate(weekday_labels(translator_for(self).language, compact=True)):
             self.calendar.create_text((column + .5) * column_width, row_height / 2, text=label,
                                       font=(theme.BODY_FONT, 9), fill=colors["MUTED"])
         for row, week in enumerate(rows, 1):

@@ -10,7 +10,7 @@ from pathlib import Path
 import random
 import time
 import tkinter as tk
-from tkinter import messagebox
+from .ui.localized_dialogs import messagebox
 
 from .pet_tracker import WindowRect
 from .pet_actions import PetActionLibrary
@@ -483,6 +483,18 @@ class PetWindow:
     def _show_menu(self, event) -> None:
         self._stop_idle_motion()
         self._defer_idle()
+        self._build_context_menu()
+        from .ui.locale_controller import translator_for
+        tr = translator_for(self.root)
+        def translate(menu):
+            end = menu.index('end')
+            for index in range((end + 1) if end is not None else 0):
+                if menu.type(index) in {'separator', 'tearoff'}:
+                    continue
+                menu.entryconfigure(index, label=tr.display(menu.entrycget(index, 'label')))
+                if menu.type(index) == 'cascade':
+                    translate(menu.nametowidget(menu.entrycget(index, 'menu')))
+        translate(self.menu)
         try:
             self.menu.tk_popup(event.x_root, event.y_root)
         finally:

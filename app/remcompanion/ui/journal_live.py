@@ -241,7 +241,8 @@ class JournalLiveDisplay:
             widget.create_oval(width - 2 * radius, 0, width, 2 * radius, fill=bg, outline='')
             widget.create_text(pixels(editor, 16), height / 2, text=language_name(code.language),
                                fill=theme.MUTED, anchor='w', font=(theme.BODY_FONT, 9))
-            widget.create_text(width - pixels(editor, 13), height / 2, text='复制', fill=theme.ACCENT,
+            from .locale_controller import translator_for
+            widget.create_text(width - pixels(editor, 13), height / 2, text=translator_for(editor)('复制'), fill=theme.ACCENT,
                                anchor='e', font=(theme.BODY_FONT, 9))
         widget.place(x=padding, y=line[1], width=width, height=height, bordermode='ignore')
 
@@ -293,7 +294,8 @@ class JournalLiveDisplay:
         header = self._headers.get((number, 'head'))
         if header is not None:
             items = header.find_all()
-            if items: header.itemconfigure(items[-1], text='已复制')
+            from .locale_controller import translator_for
+            if items: header.itemconfigure(items[-1], text=translator_for(self.editor)('已复制'))
         return 'break'
 
     def _open_link(self, event):

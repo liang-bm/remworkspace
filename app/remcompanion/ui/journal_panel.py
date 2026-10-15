@@ -13,7 +13,8 @@ from pathlib import Path
 import tkinter as tk
 from .font_source import native_font
 import tkinter.font as tkfont
-from tkinter import ttk, filedialog, simpledialog, messagebox
+from tkinter import ttk
+from .localized_dialogs import filedialog, simpledialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 from .diary_panel import DiaryPanel as _BaseDiaryPanel, _SAVE_ERRORS
 from .diary_widgets import _Toolbar, _frame, _label, _button, _entry
@@ -26,6 +27,8 @@ from .dpi import pixels
 from . import theme
 from .scroll_surface import ScrollCanvas
 from ..plaza.journal_document import JournalMedia, validate_document
+from .locale_controller import translator_for
+from ..i18n import weekday_labels
 
 
 class JournalPanel(_BaseDiaryPanel):
@@ -44,6 +47,13 @@ class JournalPanel(_BaseDiaryPanel):
         super().__init__(parent,project_root,on_changed=on_changed)
         self.day_var.trace_add('write',lambda *_:self._reload_tasks())
         self._reload_tasks(); self._show_timeline()
+        self._remchat_retranslate = self._retranslate_journal
+
+    def _retranslate_journal(self):
+        self._schedule_calendar()
+        self.editor._selection_tools.dismiss()
+        if self._journal_view == 'timeline' and not self.search.get().strip():
+            self._publish_timeline(self._timeline_records)
 
     def _build(self):
         super()._build()
@@ -363,7 +373,9 @@ class JournalPanel(_BaseDiaryPanel):
             group.columnconfigure(1,weight=1)
             stamp=date.fromisoformat(day)
             _label(group,f'{stamp.day:02d}',size=22,bold=True).grid(row=0,column=0,sticky='nw',padx=(0,18))
-            _label(group,f'{stamp.month}月 · 星期'+ '一二三四五六日'[stamp.weekday()],muted=True).grid(row=0,column=1,sticky='w')
+            tr = translator_for(self)
+            _label(group,tr('{month}月 · {weekday}', month=stamp.month,
+                           weekday=weekday_labels(tr.language)[stamp.weekday()]),muted=True).grid(row=0,column=1,sticky='w')
             tasks=_frame(group);tasks.grid(row=1,column=0,columnspan=2,sticky='ew',pady=(8,4))
             self._task_list(tasks,day,compact=True)
             for entry in (r for r in records if r.day==day):
@@ -374,7 +386,10 @@ class JournalPanel(_BaseDiaryPanel):
                 rail.create_text(pixels(self,25),pixels(self,13),text=time,font=(theme.BODY_FONT,9),fill=theme.MUTED)
                 rail.create_oval(pixels(self,45),pixels(self,9),pixels(self,53),pixels(self,17),fill=theme.ACCENT,outline='')
                 rail.create_line(pixels(self,49),pixels(self,23),pixels(self,49),pixels(self,100),fill=theme.LINE,width=2)
-                if entry.title:_label(item,entry.title,size=13,bold=True).grid(row=0,column=1,sticky='ew',pady=(0,7))
+                if entry.title:
+                    title_label = _label(item,entry.title,size=13,bold=True)
+                    title_label._remchat_locale_exclude = True
+                    title_label.grid(row=0,column=1,sticky='ew',pady=(0,7))
                 reader=JournalReadView(item,entry)
                 self._readers.append(reader)
                 if reader.has_text:reader.grid(row=1,column=1,sticky='ew')
@@ -435,6 +450,7 @@ class JournalPanel(_BaseDiaryPanel):
             control=tk.Checkbutton(host,text=task['text'],variable=variable,anchor='w',font=(theme.BODY_FONT,10),
                 bg=theme.WHITE,fg=theme.MUTED if task['done'] else theme.INK,
                 command=lambda t=task,v=variable:self._check_task(day,t['id'],v.get()))
+            control._remchat_locale_exclude = True
             control.pack(anchor='w',fill='x');style_checkbox(control)
             self._register_task(control,variable,day,task)
         if len(tasks)>4:_button(host,f'全部待办 · {len(tasks)}',lambda:self._all_tasks(day)).pack(anchor='w')

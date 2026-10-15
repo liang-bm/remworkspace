@@ -196,7 +196,8 @@ class FocusCurtain:
         progress = min(1.0, max(0.0, 1 - remaining / max(1, total)))
         seconds = math.ceil(max(0.0, remaining))
         minutes, seconds = divmod(seconds, 60)
-        shown = (minutes, seconds, paused, total)
+        translator = getattr(self.parent, '_remchat_translator', None)
+        shown = (minutes, seconds, paused, total, getattr(translator, 'language', None))
         for view in self.views:
             canvas, radius = view["canvas"], view["radius"]
             cx, cy = view["center"]

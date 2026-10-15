@@ -6,7 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 import threading
 import tkinter as tk
-from tkinter import messagebox
+from .localized_dialogs import messagebox
 
 from ..companion_preferences import (
     INSTRUCTION_FILE, MEMORY_EDITOR_FILE, PET_SCALES, clear_safe_cache,
@@ -78,9 +78,10 @@ class ChatSettingsMixin:
                                   textvariable=self.settings_category_choice,
                                   font=('Microsoft YaHei UI', 10), width=1)
         choice.pack(fill='x', padx=pixels(self.root,16), pady=pixels(self.root,8))
+        self.settings_category_box = choice
+        choice._remchat_ui_choice_labels = tuple(self._settings_categories.values())
         choice.bind('<<ComboboxSelected>>', lambda _event: self._show_settings_category(
-            next(key for key,label in self._settings_categories.items()
-                 if label==self.settings_category_choice.get())))
+            tuple(self._settings_categories)[choice.current()]))
         for group, items in navigation:
             heading = tk.Frame(rail, bg=SIDEBAR)
             heading.pack(fill="x", padx=pixels(self.root, 24),
@@ -472,7 +473,7 @@ class ChatSettingsMixin:
         self._settings_pages[key].pack(fill="both", expand=True)
         self._settings_visible_category = key
         self.settings_category = key
-        self.settings_category_choice.set(self._settings_categories[key])
+        self.settings_category_box.current(tuple(self._settings_categories).index(key))
         self.settings_canvas = self._settings_canvases.get(key)
         for name, button in self._settings_nav_buttons.items():
             if previous is not None and name not in {previous, key}:

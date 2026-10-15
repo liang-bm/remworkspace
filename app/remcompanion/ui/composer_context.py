@@ -5,7 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from dataclasses import replace
 import tkinter as tk
-from tkinter import filedialog, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog
 
 from ..text_editing import bind_text_editing
 from ..workspace_context import ContextSnapshot, MAX_ATTACHMENTS, read_attachment

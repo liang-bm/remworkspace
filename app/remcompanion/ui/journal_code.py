@@ -7,6 +7,7 @@ from .soft_fields import SoftCombobox
 from .journal_syntax import LANGUAGES, language_name
 from .settings_card import SettingsCard
 from ..text_editing import bind_text_editing
+from .locale_controller import translator_for
 
 def edit_code_block(parent,editor):
     if editor.cget('state')!='normal':return
@@ -31,6 +32,8 @@ def edit_code_block(parent,editor):
     _label(heading,'代码块',size=13,bold=True).grid(row=0,column=0,sticky='w')
     language=tk.StringVar(window,language_name(code.language) if code and not selected else '纯文本')
     choice=SoftCombobox(heading,state='readonly',width=14,textvariable=language,values=[name for _,name in LANGUAGES])
+    choice._remchat_ui_choice_labels = tuple(name for _, name in LANGUAGES)
+    choice.current(next((i for i, (_, name) in enumerate(LANGUAGES) if name == language.get()), 0))
     choice.grid(row=0,column=1,sticky='e')
     content=tk.Frame(body,bg=theme.WHITE);content.grid(row=1,column=0,sticky='nsew');content.columnconfigure(0,weight=1);content.rowconfigure(0,weight=1)
     text=tk.Text(content,wrap='none',font=('Consolas',11),bg=theme.APP_BG,fg=theme.INK,insertbackground=theme.INK,relief='flat',bd=0,padx=12,pady=10,undo=True,width=1,height=1)
@@ -49,7 +52,8 @@ def edit_code_block(parent,editor):
     def apply():
         if (editor.winfo_exists() and editor.cget('state')=='normal'
                 and getattr(parent,'_navigation_serial',None)==navigation):
-            identifier=next((identifier for identifier,name in LANGUAGES if name==language.get()),'text')
+            index = choice.current()
+            identifier = LANGUAGES[index][0] if index >= 0 else 'text'
             editor.replace_code('code_dialog_start','code_dialog_end',text.get('1.0','end-1c'),identifier);editor.focus_set()
         close()
     _button(bar,'取消',close).pack(side='left',padx=(0,8));_button(bar,'插入 / 更新',apply,primary=True).pack(side='left')

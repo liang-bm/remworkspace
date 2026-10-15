@@ -429,6 +429,15 @@ def main() -> None:
         if not state.get("closing") and root.winfo_exists():
             root.deiconify()
             root.lift()  # raise the existing pet, never focus_force it every frame
+        rings = state.get('task_rings')
+        if rings is not None:
+            rings.raise_for_focus()
+
+    def change_interface_language(language: str) -> None:
+        save_preferences(ui_language=language)
+        gate = state.get('voice_gate')
+        if gate is not None:
+            gate.retranslate()
 
     chat = ChatWindow(
         main_root,
@@ -461,7 +470,7 @@ def main() -> None:
         theme_mode=preferences.theme_mode,
         on_set_theme=lambda mode: save_preferences(theme_mode=mode),
         ui_language=preferences.ui_language,
-        on_set_ui_language=lambda language: save_preferences(ui_language=language),
+        on_set_ui_language=change_interface_language,
         task_rings_visible=task_rings_visible,
         on_set_task_rings_visible=set_ring_display,
         on_restore_task_rings=restore_task_rings,
@@ -470,6 +479,7 @@ def main() -> None:
         on_keep_focus_pet_visible=keep_focus_pet_visible,
     )
     state["chat"] = chat
+    root._remchat_translator = chat.translator
     print("[窗口] main chat ready")
 
     # Windows first: separate Toplevels keep pet and bubble sizes/interactions intact.

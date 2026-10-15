@@ -6,6 +6,7 @@ from . import theme
 from .diary_widgets import _button, _frame, _label
 from .dpi import pixels
 from .settings_card import SettingsCard
+from .locale_controller import translator_for
 
 
 class JournalSelectionTools:
@@ -153,6 +154,7 @@ class _SelectionPopup(tk.Toplevel):
         super().__init__(tools.editor)
         self.tools=tools;self.full=full;self.selection=selection;self.buttons=[]
         self.withdraw();self.overrideredirect(True);self.transient(tools.editor.winfo_toplevel())
+        self.tr = translator_for(tools.editor)
         self.configure(bg=theme.APP_BG)
         self._remchat_locale_exclude=True
         card=SettingsCard(self,shadow=True,inset=8,radius=12)
@@ -163,7 +165,7 @@ class _SelectionPopup(tk.Toplevel):
                 ('插入',(('代码块','code'),('表情','emoji'),('附件','attachment'))))
         if full:
             for row,(label,items) in enumerate(groups):
-                _label(body,label,size=9,muted=True).grid(row=row*2,column=0,sticky='w',pady=(5,4))
+                _label(body,self.tr(label),size=9,muted=True).grid(row=row*2,column=0,sticky='w',pady=(5,4))
                 group=_frame(body);group.grid(row=row*2+1,column=0,sticky='ew')
                 for index,(text,action) in enumerate(items):
                     button=self._add(group,text,action)
@@ -192,7 +194,7 @@ class _SelectionPopup(tk.Toplevel):
         self.update_idletasks()
 
     def _add(self,parent,label,action):
-        button=_button(parent,label,lambda:self.tools.run(action))
+        button=_button(parent,self.tr.display(label),lambda:self.tools.run(action))
         button.configure(padx=pixels(self,9),pady=pixels(self,6),takefocus=self.full)
         button.bind('<Return>',lambda event:self.tools.run(action))
         self.buttons.append(button);return button

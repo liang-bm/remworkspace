@@ -13,7 +13,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import queue
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog, messagebox
 
 from ..background_album import BackgroundAlbum, MODES, prepare_import
 from ..chat_background import render_faded_cover

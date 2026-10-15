@@ -4,7 +4,7 @@ Build one prompt from observed character facts, not assumptions.
 
 ## Prompt structure
 
-1. **Identity lock:** character, costume, proportions, eye/hair details, rendering style, outline treatment.
+1. **Identity lock:** character, costume, proportions, eye/hair details, rendering style, outline treatment. Match the existing line weight: no extra sticker border, outer glow or opaque black/white matte.
 2. **Technical layout:** exact `COLUMNS × ROWS`, equal cells, chronological left-to-right then top-to-bottom order, full body, consistent camera and scale.
 3. **Motion beats:** one unambiguous pose per cell. Describe weight shift, hands, face, and effect graphics.
 4. **Background:** transparent when supported; otherwise one flat removable color that does not appear in the character.

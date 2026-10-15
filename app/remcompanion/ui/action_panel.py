@@ -10,7 +10,7 @@ import tkinter as tk
 from .font_source import native_font
 from .scroll_surface import ScrollCanvas
 import tkinter.font as tkfont
-from tkinter import filedialog, messagebox
+from .localized_dialogs import filedialog, messagebox
 
 from ..companion_preferences import open_in_vscode
 from ..pet_actions import PetActionEntry, PetActionLibrary

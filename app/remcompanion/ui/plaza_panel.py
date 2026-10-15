@@ -21,7 +21,7 @@ from .font_source import native_font
 from .scroll_surface import ScrollCanvas
 from .soft_fields import SoftEntry, SoftSpinbox
 import tkinter.font as tkfont
-from tkinter import filedialog, messagebox
+from .localized_dialogs import filedialog, messagebox
 
 from ..clipboard import copy_text
 from ..plaza.companion import CompanionSchedule, CompanionSettings

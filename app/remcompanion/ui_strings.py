@@ -750,3 +750,7 @@ _FOCUS_DATE_ROWS = (
 )
 for _source, *_translations in _FOCUS_DATE_ROWS:
     MESSAGES[_source] = dict(zip(("zh-Hant", "en", "ja"), _translations))
+
+from .ui_followup_strings import MESSAGES as _FOLLOWUP_MESSAGES
+for _source, _translations in _FOLLOWUP_MESSAGES.items():
+    MESSAGES.setdefault(_source, _translations)

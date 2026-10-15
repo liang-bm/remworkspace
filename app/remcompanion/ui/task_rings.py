@@ -14,7 +14,8 @@ import queue
 import threading
 import time
 import tkinter as tk
-from tkinter import font as tkfont, messagebox, ttk
+from tkinter import font as tkfont, ttk
+from .localized_dialogs import messagebox
 from typing import Callable
 
 from ..platforms import native_module
@@ -371,6 +372,16 @@ class TaskRings:
         if self.window.state() == "withdrawn":
             self.window.deiconify()
             native_module("windowing").remove_pet_frame(self.window)
+
+    def raise_for_focus(self) -> None:
+        """Raise existing supervision, never re-enable hidden groups or jobs."""
+        if self.closed:
+            return
+        self._render_overlay(self._ordered())
+        if self.window.state() != 'withdrawn':
+            self.window.lift()
+        if self.popup is not None and self.popup.winfo_exists() and self.popup.state() != 'withdrawn':
+            self.popup.lift()
 
     def _set_display(self, visible: bool, hidden_groups: set[str], feedback: str) -> bool:
         if self.closed:

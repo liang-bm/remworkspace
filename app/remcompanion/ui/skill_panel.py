@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from .localized_dialogs import filedialog, messagebox
 
 from .resource_rows import PermissionSwitch
 from .theme import WHITE, INK, MUTED, BODY_FONT

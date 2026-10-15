@@ -7,7 +7,7 @@ from hashlib import sha256
 from pathlib import Path
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from .localized_dialogs import filedialog, messagebox
 from urllib.parse import urlparse
 
 from ..model_catalog import fetch_model_ids

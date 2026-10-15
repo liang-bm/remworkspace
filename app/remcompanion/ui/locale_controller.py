@@ -12,7 +12,7 @@ from weakref import WeakKeyDictionary, WeakSet
 import tkinter as tk
 from tkinter import ttk
 
-from ..i18n import Translator
+from ..i18n import Translator, canonical_source
 
 
 @dataclass
@@ -35,10 +35,32 @@ class LocaleController:
         self._pending: str | None = None
         self._applying = False
         self._closed = False
+        self._language = translator.language
+        self._tops = WeakKeyDictionary()
+        self._map_binding = root.bind_all('<Map>', self._discover_window, add=True)
+        self.last_errors = ()
         self._bindings = {event: root.bind(event, self.schedule, add="+")
                           for event in ("<Map>", "<Configure>")}
         root._remchat_translator = translator
         root._remchat_locale_controller = self
+
+    def _owns(self, widget):
+        while widget is not None:
+            if widget is self.root:
+                return True
+            widget = getattr(widget, 'master', None)
+        return False
+
+    def _discover_window(self, event):
+        if self._closed or not self._owns(event.widget):
+            return
+        top = event.widget.winfo_toplevel()
+        if top is not self.root and top not in self._tops:
+            self._tops[top] = {sequence: top.bind(sequence, self.schedule, add=True)
+                               for sequence in ('<Map>', '<Configure>')}
+            self._dirty[top] = True
+            if self._pending is None:
+                self._pending = self.root.after_idle(self._refresh)
 
     def schedule(self, _event=None) -> None:
         if self._closed or self._applying:
@@ -140,7 +162,8 @@ class LocaleController:
         states = self._states.setdefault(widget, {})
         state = states.get(key)
         if state is None or state.expected != current:
-            state = _TextState(current, current)
+            explicit = getattr(widget, '_remchat_ui_sources', {}).get(key)
+            state = _TextState(explicit or canonical_source(current), current)
             states[key] = state
         translated = self.translator.display(state.source)
         state.expected = translated
@@ -150,27 +173,49 @@ class LocaleController:
         if getattr(widget, "_remchat_locale_exclude", False):
             return
         yield widget
-        for child in widget.winfo_children():
+        try:
+            children = widget.winfo_children()
+        except tk.TclError:
+            return
+        for child in children:
             yield from self._walk(child)
 
     def apply(self) -> None:
+        changed = self._language != self.translator.language
+        self._language = self.translator.language
+        if changed:
+            # Only registered UI producers redraw. Editors and user data are
+            # never translated or rebuilt to switch an interface language.
+            for widget in tuple(self._walk(self.root)):
+                callback = getattr(widget, "_remchat_retranslate", None)
+                if callback is not None:
+                    callback()
         self._apply_scope(self.root, subtree=True)
 
     def _apply_scope(self, target: tk.Misc, *, subtree: bool) -> None:
         if self._closed or self._applying:
             return
         self._applying = True
+        errors = []
         try:
             for widget in self._walk(target) if subtree else (target,):
-                self._seen.add(widget)
-                self._apply_widget(widget)
-        except tk.TclError:
-            # Destruction can race a queued Map/Configure callback on exit.
-            pass
+                try:
+                    self._seen.add(widget)
+                    self._apply_widget(widget)
+                except tk.TclError as error:
+                    # A destroyed/unsupported widget must not abort translation
+                    # of the rest of the application.
+                    errors.append((type(widget).__name__, str(error)))
         finally:
+            self.last_errors = tuple(errors)
             self._applying = False
 
     def _apply_widget(self, widget: tk.Misc) -> None:
+        if isinstance(widget, tk.Toplevel) and not getattr(widget, '_remchat_title_exclude', False):
+            current = widget.title()
+            translated = self._translated(widget, 'title', current)
+            if translated != current:
+                widget.title(translated)
         if isinstance(widget, ttk.Combobox) and hasattr(widget, "_remchat_ui_choice_labels"):
             # Opt-in UI choices only; never rewrite models, IDs or user values.
             index = widget.current()
@@ -213,7 +258,7 @@ class LocaleController:
                 # sibling's already-translated value as a new English source.
                 state = self._variable_states.get(variable)
                 if state is None or state.expected != current:
-                    state = _TextState(current, current)
+                    state = _TextState(canonical_source(current), current)
                     self._variable_states[variable] = state
                 self._states.setdefault(widget, {})["text"] = state
                 translated = self.translator.display(state.source)
@@ -244,6 +289,19 @@ class LocaleController:
                 except tk.TclError:
                     # A transient dialog can be destroyed before its cleanup.
                     pass
+        for top, bindings in tuple(self._tops.items()):
+            for event, binding in bindings.items():
+                try:
+                    top.unbind(event, binding)
+                except tk.TclError:
+                    pass
+        script = str(self.root.tk.call('bind', 'all', '<Map>'))
+        self.root.tk.call('bind', 'all', '<Map>', '\n'.join(
+            line for line in script.splitlines() if self._map_binding not in line))
+        try:
+            self.root.deletecommand(self._map_binding)
+        except tk.TclError:
+            pass
         for variable in tuple(self._traces):
             self._unwatch_variable(variable)
 

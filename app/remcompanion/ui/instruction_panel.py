@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import tkinter as tk
-from tkinter import messagebox
+from .localized_dialogs import messagebox
 
 from ..companion_preferences import open_in_vscode
 from ..global_instruction import (

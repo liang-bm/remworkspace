@@ -8,7 +8,8 @@ import sqlite3
 import tkinter as tk
 from .soft_fields import SoftEntry
 import tkinter.font as tkfont
-from tkinter import messagebox, ttk
+from tkinter import ttk
+from .localized_dialogs import messagebox
 
 from ..memory import ConversationMemory, StoredMemory
 from ..text_editing import bind_text_editing

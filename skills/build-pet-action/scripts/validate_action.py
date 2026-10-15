@@ -49,7 +49,9 @@ def _border_has_alpha(image: Image.Image) -> bool:
     return any(alpha.getpixel(point) > 0 for point in coordinates)
 
 
-def validate_frames(directory: Path) -> ValidationReport:
+def validate_frames(directory: Path, *, renderer: str = 'unknown') -> ValidationReport:
+    if renderer not in {'unknown', 'per-pixel-alpha', 'color-key'}:
+        raise ValueError('Unknown alpha presentation mode')
     paths = sorted(
         path
         for path in directory.glob("*.png")
@@ -104,6 +106,12 @@ def validate_frames(directory: Path) -> ValidationReport:
         # Image.getdata deprecation introduced in Pillow 12.
         areas.append(sum(1 for value in image.getchannel("A").tobytes() if value))
         feet.append(bbox[3])
+        if renderer != 'per-pixel-alpha' and any(0 < value < 255 for value in image.getchannel('A').tobytes()):
+            issues.append(ValidationIssue(
+                'error' if renderer == 'color-key' else 'warning',
+                'color-key-alpha' if renderer == 'color-key' else 'renderer-alpha-unverified',
+                path.name,
+                '半透明像素需要逐像素 alpha 合成；单色透明键会产生黑/白边。请检查宿主渲染，不要删除角色黑色描线。'))
         if _border_has_alpha(image):
             issues.append(
                 ValidationIssue(
@@ -138,12 +146,42 @@ def validate_frames(directory: Path) -> ValidationReport:
     return ValidationReport(len(paths), expected_size, tuple(issues))
 
 
+def write_alpha_preview(directory: Path, destination: Path) -> None:
+    """Diagnostic composites only; never modify the original frame files."""
+    paths = sorted(path for path in directory.glob('*.png')
+                   if path.name != 'contact-sheet.png' and path.resolve() != destination.resolve())
+    if not paths:
+        raise ValueError('No frames to preview')
+    frames = []
+    for path in paths:
+        with Image.open(path) as source:
+            frames.append(source.convert('RGBA'))
+    width, height = max(frame.width for frame in frames), max(frame.height for frame in frames)
+    columns = min(8, len(frames))
+    rows = (len(frames) + columns - 1) // columns
+    preview = Image.new('RGB', (columns * width, rows * height * 2))
+    for background_row, colour in enumerate(('#F5F7FA', '#142235')):
+        for index, frame in enumerate(frames):
+            cell = Image.new('RGBA', (width, height), colour)
+            cell.alpha_composite(frame)
+            preview.paste(cell.convert('RGB'), ((index % columns) * width,
+                          (index // columns + background_row * rows) * height))
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    preview.save(destination)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("frames", type=Path)
     parser.add_argument("--report", type=Path)
+    parser.add_argument('--renderer', choices=('unknown', 'per-pixel-alpha', 'color-key'), default='unknown')
+    parser.add_argument('--alpha-preview', type=Path)
     args = parser.parse_args()
-    report = validate_frames(args.frames)
+    report = validate_frames(args.frames, renderer=args.renderer)
+    if args.alpha_preview:
+        if args.alpha_preview.parent.resolve() == args.frames.resolve():
+            parser.error('Place diagnostic alpha previews outside the frame directory')
+        write_alpha_preview(args.frames, args.alpha_preview)
     payload = json.dumps(report.to_dict(), ensure_ascii=False, indent=2)
     print(payload)
     if args.report:

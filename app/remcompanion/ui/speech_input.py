@@ -5,13 +5,14 @@ from pathlib import Path
 import threading
 import time
 import tkinter as tk
-from tkinter import messagebox
+from .localized_dialogs import messagebox
 from weakref import WeakSet
 from . import theme
 from .dpi import pixels
 from .rounded_controls import rounded_box
 from ..asr import AsrSettingsStore,transcribe
 from ..platforms import native_module
+from .locale_controller import translator_for
 
 
 class SpeechController:
@@ -138,7 +139,8 @@ class SpeechBinding:
     def refresh(self):
         if not self.button.winfo_exists():return
         owned=self.controller.owner is self;state=self.controller.state
-        self.button.configure(text=('■' if state=='recording' else '取消') if owned else self._idle_label,
+        tr = translator_for(self.parent)
+        self.button.configure(text=tr.display(('■' if state=='recording' else '取消') if owned else self._idle_label),
                               state='normal' if owned or state=='idle' else 'disabled')
         if self.send_button and self.send_button.winfo_exists():
             if state!='idle':
@@ -147,14 +149,15 @@ class SpeechBinding:
             elif self._send_state is not None:
                 self.send_button.configure(state=self._send_state);self._send_state=None
         if owned and self.panel and self.panel.winfo_exists():
-            if state=='transcribing':self.time_label.configure(text='识别中…')
+            if state=='transcribing':self.time_label.configure(text=tr('识别中…'))
             label=('继续' if self.controller.paused else '暂停') if self.dialog else ('▷' if self.controller.paused else 'Ⅱ')
-            self._pause_button.configure(text=label,state='normal' if state=='recording' else 'disabled')
+            self._pause_button.configure(text=tr.display(label),state='normal' if state=='recording' else 'disabled')
             self._stop_button.configure(state='normal' if state=='recording' else 'disabled')
     def show_recording(self):
         colors=self.colors()
+        tr = translator_for(self.parent)
         if self.dialog:
-            self.window=tk.Toplevel(self.target);self.window.title('语音日记');self.window.geometry('620x250');self.window.configure(bg=colors['surface'])
+            self.window=tk.Toplevel(self.target);self.window.title(tr('语音日记'));self.window.geometry('620x250');self.window.configure(bg=colors['surface'])
             self.window.transient(self.target.winfo_toplevel());self.window.protocol('WM_DELETE_WINDOW',self.controller.cancel)
             container=self.window
         else:
@@ -168,7 +171,7 @@ class SpeechBinding:
         controls=(('暂停',self.controller.pause),('停止并转写',self.controller.finish),('取消',self.controller.cancel)) if self.dialog else (
             ('×',self.controller.cancel),('Ⅱ',self.controller.pause),('■',self.controller.finish))
         for text,command in controls:
-            button=tk.Button(commands,text=text,command=command,bd=0,relief='flat',bg=colors['button'],fg=colors['on_button'],
+            button=tk.Button(commands,text=tr.display(text),command=command,bd=0,relief='flat',bg=colors['button'],fg=colors['on_button'],
                 font=(theme.BODY_FONT,12),padx=10,pady=7,cursor='hand2');button.pack(side='left',padx=3)
             if command==self.controller.pause:self._pause_button=button
             if command==self.controller.finish:self._stop_button=button
@@ -178,7 +181,7 @@ class SpeechBinding:
         if not self.panel or not self.panel.winfo_exists():return
         stamp=f'{int(elapsed)//60:02d}:{int(elapsed)%60:02d}'
         if self.dialog:stamp='00:'+stamp
-        self.time_label.configure(text=stamp+(' · 已暂停' if paused else ''))
+        self.time_label.configure(text=stamp+(translator_for(self.parent)(' · 已暂停') if paused else ''))
         self.wave.delete('all');width,height=self.wave.winfo_width(),self.wave.winfo_height()
         colors=self.colors()
         rounded_box(self.wave,(1,1,width-1,height-1),radius=min(24,height/2),fill=colors['wave'],outline='')

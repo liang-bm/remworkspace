@@ -13,6 +13,7 @@ from PIL import Image, ImageTk
 
 from ..plaza.cooking import CookingModel, RECIPES, STATION_NAMES
 from . import theme
+from .locale_controller import translator_for
 
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "farm"
@@ -53,6 +54,8 @@ class FarmKitchen(tk.Frame):
         self.step_text = tk.StringVar(self)
         self.history_text = tk.StringVar(self)
         self.notice_text = tk.StringVar(self)
+        self._message_source = (self.message.get(), {})
+        self._remchat_retranslate = self._refresh
         self._load_assets()
         self._build_widgets()
         self.bind("<Destroy>", self._destroyed, add="+")
@@ -174,6 +177,14 @@ class FarmKitchen(tk.Frame):
         if self._closed:
             return
         colors = theme.palette()
+        tr = translator_for(self)
+        source, values = self._message_source
+        def copy(value):
+            for suffix in (' 已记入成品记录。', ' 本次仅练习，成品未写入记录；原文件已保留。'):
+                if value.endswith(suffix):
+                    return tr.display(value[:-len(suffix)]) + ' ' + tr.display(suffix.strip())
+            return tr.display(value)
+        self.message.set(tr(source, **{key: copy(value) for key, value in values.items()}))
         for key, button in self.recipe_buttons.items():
             selected = key == self.model.recipe_id
             button.configure(bg=colors["ACCENT_DEEP"] if selected else colors["APP_BG"],
@@ -181,27 +192,30 @@ class FarmKitchen(tk.Frame):
         step = self.model.current_step
         if step:
             done = self.model.step_index
-            progression = " → ".join(("✓ " if index < done else "") + item.label
+            progression = " → ".join(("✓ " if index < done else "") + tr.display(item.label)
                 for index, item in enumerate(self.model.recipe.steps))
-            self.step_text.set(f"{done + 1}/4 · {step.instruction}\n{progression}")
-            self.action_button.configure(text=f"{done + 1}/4  {step.label}", state="normal")
+            self.step_text.set(f"{done + 1}/4 · {tr.display(step.instruction)}\n{progression}")
+            self.action_button.configure(text=f"{done + 1}/4  {tr.display(step.label)}", state="normal")
             self.restart_button.configure(text="重新练习")
         else:
-            self.step_text.set(f"完成 · {self.model.recipe.name}" +
-                ("已加入成品记录。" if self.model.last_saved else "完成了本次练习；记录未保存。"))
+            self.step_text.set(tr('完成 · {recipe}{result}', recipe=tr.display(self.model.recipe.name),
+                result=tr.display("已加入成品记录。" if self.model.last_saved else "完成了本次练习；记录未保存。")))
             self.action_button.configure(text="再做一份", state="normal")
             self.restart_button.configure(text="从头练习")
         counts = self.model.counts()
-        count_text = " · ".join(f"{recipe.name} {counts[key]}份" for key, recipe in RECIPES.items())
+        count_text = " · ".join(tr('{recipe} {count}份', recipe=tr.display(recipe.name), count=counts[key])
+                                for key, recipe in RECIPES.items())
         records = self.model.records
         if records:
             last = records[-1]
             known_recipe = RECIPES.get(last["recipe"])
             name = last.get("name") or (known_recipe.name if known_recipe else f"未知菜品（{last['recipe']}）")
-            recent = f"最近：{name} · {last['completed_at'].replace('T', ' ')[:16]}"
+            if known_recipe and name == known_recipe.name:
+                name = tr.display(name)
+            recent = tr('最近：{name} · {time}', name=name, time=last['completed_at'].replace('T', ' ')[:16])
         else:
-            recent = "还没有成品记录，完成一道菜试试吧。"
-        self.history_text.set(f"成品记录 · {count_text}\n{recent}")
+            recent = tr('还没有成品记录，完成一道菜试试吧。')
+        self.history_text.set(tr('成品记录 · {counts}\n{recent}', counts=count_text, recent=recent))
         notices = []
         if self.model.error:
             notices.append(f"只读练习：{self.model.error}。修复后点击右侧重新读取。")
@@ -211,12 +225,16 @@ class FarmKitchen(tk.Frame):
         self.reload_button.configure(state="normal" if self.model.error else "disabled")
         self.draw()
 
+    def _set_message(self, source, **values):
+        self._message_source = (source, values)
+
     def select_recipe(self, recipe_id):
         if self._closed or self._paused:
             return
         self._stop_effect()
         self.model.select_recipe(recipe_id)
-        self.message.set(f"雷姆：来练习{self.model.recipe.name}。{self.model.current_step.instruction}")
+        self._set_message('雷姆：来练习{recipe}。{instruction}', recipe=self.model.recipe.name,
+                          instruction=self.model.current_step.instruction)
         self._refresh()
 
     def restart(self):
@@ -224,7 +242,7 @@ class FarmKitchen(tk.Frame):
             return
         self._stop_effect()
         self.model.restart()
-        self.message.set(f"雷姆：再来一次吧。{self.model.current_step.instruction}")
+        self._set_message('雷姆：再来一次吧。{instruction}', instruction=self.model.current_step.instruction)
         self._refresh()
 
     def perform_action(self):
@@ -237,7 +255,7 @@ class FarmKitchen(tk.Frame):
         # recipe state itself never waits on animation completion.
         self._stop_effect()
         result = self.model.perform_action()
-        self.message.set("雷姆：" + result.message)
+        self._set_message('雷姆：{message}', message=result.message)
         self._effect = {"action": result.action, "station": result.station, "frame": 0}
         self._refresh()
         if self.motion.get() and self.winfo_ismapped():
@@ -250,7 +268,7 @@ class FarmKitchen(tk.Frame):
         if self._closed:
             return
         success = self.model.reload_records()
-        self.message.set("雷姆：成品记录重新读好了，手上的练习没有改变。" if success else
+        self._set_message("雷姆：成品记录重新读好了，手上的练习没有改变。" if success else
                          "雷姆：记录还不能读取，原文件没有改动。练习材料仍然无限。")
         self._refresh()
 
@@ -271,11 +289,14 @@ class FarmKitchen(tk.Frame):
             if left <= x <= right and top <= y <= bottom:
                 step = self.model.current_step
                 if self.model.completed:
-                    self.message.set("雷姆：已经做好啦，点“再做一份”开始下一份练习。")
+                    self._set_message("雷姆：已经做好啦，点“再做一份”开始下一份练习。")
+                    self._refresh()
                 elif step.station == key:
                     self.perform_action()
                 else:
-                    self.message.set(f"雷姆：先去{STATION_NAMES[step.station]}{step.label}，再来这里吧。")
+                    self._set_message('雷姆：先去{station}{action}，再来这里吧。',
+                                      station=STATION_NAMES[step.station], action=step.label)
+                    self._refresh()
                 return
 
     def _point(self, x, y):
@@ -294,7 +315,7 @@ class FarmKitchen(tk.Frame):
         return self.canvas.create_line(*translated, fill=fill, width=max(1, width * self._scale), tags=tags, **kwargs)
 
     def _text(self, x, y, text, *, fill=None, size=10, bold=False, anchor="center", tags=()):
-        return self.canvas.create_text(*self._point(x, y), text=text,
+        return self.canvas.create_text(*self._point(x, y), text=translator_for(self).display(text),
             fill=fill or SCENE["ink"], anchor=anchor, tags=tags,
             font=(theme.BODY_FONT, max(8, round(size * min(1, self._scale))),
                   "bold" if bold else "normal"))

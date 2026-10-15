@@ -8,7 +8,8 @@ import queue
 import threading
 import tkinter as tk
 from .soft_fields import SoftEntry
-from tkinter import filedialog, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog
 
 from ..plaza.dictionaries import LocalDictionaries
 from . import theme

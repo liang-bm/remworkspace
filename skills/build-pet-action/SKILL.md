@@ -21,6 +21,7 @@ project/host Python environment when it already provides Pillow.
 4. Visually inspect the supplied/generated sheet. Confirm grid order, complete limbs, consistent scale, and that effect graphics belong to their intended cells.
 5. Run `scripts/build_action.py`. Set the exact grid and any bottom label strip. Use `mirror_second_pass` only when the motion is intentionally symmetric.
 6. Run `scripts/validate_action.py`. Treat errors as blockers. Inspect `contact-sheet.png` for identity drift, foot jitter, missing effects, and incorrect ordering.
+   For desktop windows also read [alpha-presentation.md](references/alpha-presentation.md) and generate the paired light/dark alpha preview. A transparent PNG alone does not prove a colour-key window can display it correctly.
 7. Run `scripts/install_action.py` with a reviewed hook. The installer validates paths, stages files, preserves the previous action as a timestamped backup, and updates only an optional JSON registry.
 
 ## Build Command
@@ -43,7 +44,8 @@ Use `--background-mode alpha` for an already transparent sheet. Corner flood rem
 ## Validate and Install
 
 ```bash
-python scripts/validate_action.py out/happy --report out/happy-report.json
+python scripts/validate_action.py out/happy --report out/happy-report.json \
+  --renderer per-pixel-alpha --alpha-preview out/happy-alpha-preview.png
 python scripts/install_action.py \
   --project-root /path/to/project \
   --name happy \

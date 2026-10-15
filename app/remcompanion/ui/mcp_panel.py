@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog, messagebox
 from typing import Any
 
 from ..integrations.storage import parse_mcp_import

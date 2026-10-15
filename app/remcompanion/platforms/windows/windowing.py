@@ -40,8 +40,14 @@ def configure_overlay_transparency(root: tk.Misc, color: str) -> None:
 
 
 def create_pet_silhouette(root: tk.Misc):
-    """Windows uses its own transparency colour; never load X11 native code."""
-    return None
+    """Preserve PNG alpha instead of blending edges onto a black colour key."""
+    from .pet_alpha import PetAlphaSurface
+    try:
+        return PetAlphaSurface(root)
+    except (OSError, AttributeError, tk.TclError) as error:
+        print(f'[pet alpha] Using colour-key fallback: {error}')
+        configure_pet_transparency(root, '#010203')
+        return None
 
 
 def remove_pet_frame(root: tk.Misc) -> None:

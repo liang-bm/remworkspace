@@ -33,3 +33,5 @@ jobs:
         run: python -S scripts/check_public_source.py --tracked
       - name: Run maintained core unit tests
         run: python -S -m unittest discover -s tests -v
+      - name: Check four-language UI copy and interpolation
+        run: python -S scripts/check_ui_locales.py

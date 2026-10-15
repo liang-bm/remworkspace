@@ -28,6 +28,8 @@ from .dpi import pixels
 from .settings_card import SettingsCard
 from .rounded_controls import rounded_box
 from ..clipboard import copy_text
+from ..i18n import weekday_labels
+from .locale_controller import translator_for
 
 
 TOKEN_FIELDS = ("input_tokens", "output_tokens", "cached_input_tokens", "total_tokens")
@@ -107,6 +109,7 @@ class UsagePanel(tk.Frame):
         self._loaded_at = 0.0
         self._query = None
         self._pending_query = None
+        self._remchat_retranslate = self._language_changed
         self._mode = theme.get_mode()
         self._layout_width = 0
         self._cell_bounds = {}
@@ -778,7 +781,7 @@ class UsagePanel(tk.Frame):
         peak = max((value for value in values if value is not None), default=0)
         self._calendar_peak = peak
         self._calendar_weeks = weeks
-        for index, label in enumerate(("一","二","三","四","五","六","日")):
+        for index, label in enumerate(weekday_labels(translator_for(self).language, compact=True)):
             if pitch < font.metrics('linespace') and index not in (0,2,4):
                 continue
             self.weekdays.create_text(pixels(self,13),top+index*pitch+cell/2,text=label,fill=colors["MUTED"],font=font,tags=("theme-fixed",))
@@ -805,7 +808,7 @@ class UsagePanel(tk.Frame):
             self._cell_bounds[day.isoformat()] = (x,y,x+cell,y+cell)
             if day.month not in months:
                 months.add(day.month)
-                self.calendar.create_text(x,pixels(self,4),text=f"{day.month}月",anchor="nw",fill=colors["MUTED"],font=font,tags=("theme-fixed",))
+                self.calendar.create_text(x,pixels(self,4),text=translator_for(self)('{month}月', month=day.month),anchor="nw",fill=colors["MUTED"],font=font,tags=("theme-fixed",))
             if day == last:
                 break
             day += timedelta(days=1)
@@ -815,6 +818,10 @@ class UsagePanel(tk.Frame):
         self.calendar.configure(height=height,scrollregion=(0,0,width,height))
         self.weekdays.configure(width=pixels(self,26),height=height)
         self.legend.configure(text='')
+
+    def _language_changed(self):
+        self._draw_calendar()
+        self._draw_trend()
 
     def _hit_day(self, event):
         x,y = self.calendar.canvasx(event.x),self.calendar.canvasy(event.y)

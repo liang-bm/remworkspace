@@ -47,6 +47,7 @@ class ApplicationPanelMixin:
     def _open_app_detail(self,row):
         if isinstance(row,tk.Event):return
         window=tk.Toplevel(self);window.title(row['name']);window.transient(self.winfo_toplevel())
+        window._remchat_title_exclude = True
         window.configure(bg=theme.APP_BG);window.geometry('570x320');window.minsize(390,250)
         card=SettingsCard(window,stretch=True,inset=18);card.pack(fill='both',expand=True,padx=10,pady=10)
         body=card.body

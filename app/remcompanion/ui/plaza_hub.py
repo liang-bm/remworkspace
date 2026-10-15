@@ -35,8 +35,8 @@ FEATURES = (
              "走进小农场，耕地、播种、浇水和收获。作物按真实时间成长，离开后也会继续。"),
     _Feature("words", "单词卡片", "学习 · 复习词卡",
              "用本地正式词典复习释义和例句，随手记下自己的理解。笔记与复习进度独立保留。"),
-    _Feature("diary", "日记", "记录 · Markdown",
-             "写下今天，按日期、标签与心情回看。自动保存，支持预览、导入导出和回收站。"),
+    _Feature("diary", "日记", "记录 · 富文本与附件",
+             "按日期与标签回看，直接编辑富文本和 Markdown；记录图片、音频、视频，管理每日待办与模板。"),
     _Feature("process", "项目过程", "工作 · 会话追踪",
              "先接入工具并选择主会话，再回看阶段、输入、Token 与调用。观察展示和会话管理在同一工作区。"),
     _Feature("companion", "主动陪伴", "陪伴 · 提醒设置",
@@ -98,6 +98,7 @@ class PlazaHub(tk.Frame):
         self.bind("<Map>", self._schedule_layout, add="+")
         self.bind("<Destroy>", self._destroy, add="+")
         self._bind_scroll(self)
+        self._remchat_retranslate = self._schedule_layout
         self._schedule_layout()
 
     def _label(self, parent: tk.Misc, text: str, *, role: str = "INK",

@@ -9,7 +9,9 @@ RemWorkspace is a local-first desktop workspace with chat, Rem as a desktop comp
 
 The repository is named `remworkspace`. The app's interface and executables are still named RemChat, and its Python package is `remcompanion`. Button labels, commands and paths below use those current names.
 
-It runs on Windows and Linux x86_64. Choose simplified Chinese, traditional Chinese, English or Japanese in the interface settings. Some newer screens still have Chinese buttons, so this guide includes their original labels.
+It runs on Windows and Linux x86_64. Choose Simplified Chinese, Traditional Chinese, English or Japanese in Settings > General. The interface follows your choice; your chats, journal entries and filenames stay as you wrote them.
+
+Version 0.1.1 fixes dark animation halos on Windows, fills translation gaps in newer screens and dialogs, and keeps task tracking rings visible over the focus curtain. Rings you have hidden stay hidden.
 
 For everyday use, download your system's package from [Releases](https://github.com/liang-bm/remworkspace/releases). It includes the pet animations. You can open the app, write a diary, manage tasks, focus and use the farm without installing Python or speech models first. Chat needs your own model service. Speech starts off; install it only when you want spoken replies.
 

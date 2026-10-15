@@ -15,7 +15,8 @@ import time
 import tkinter as tk
 from .scroll_surface import ScrollCanvas
 from .soft_fields import SoftTtkEntry
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog, messagebox
 from typing import Any
 
 from ..integrations import IntegrationManager

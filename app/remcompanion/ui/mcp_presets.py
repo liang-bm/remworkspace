@@ -1,6 +1,7 @@
 """A curated offline catalog; selecting a template only fills a disabled draft."""
 import tkinter as tk
-from tkinter import filedialog,ttk
+from tkinter import ttk
+from .localized_dialogs import filedialog
 from ..integrations.presets import MCP_PRESETS,mcp_preset
 from ..platforms import native_module
 from . import theme

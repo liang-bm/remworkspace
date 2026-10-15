@@ -14,7 +14,8 @@ import tkinter as tk
 from .font_source import native_font
 from .scroll_surface import ScrollCanvas
 from .soft_fields import SoftTtkEntry
-from tkinter import font as tkfont, filedialog, ttk
+from tkinter import font as tkfont, ttk
+from .localized_dialogs import filedialog
 import uuid
 
 from ..text_editing import bind_text_editing

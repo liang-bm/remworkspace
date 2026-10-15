@@ -1,7 +1,7 @@
 """Dedicated ASR settings; saving does not record, upload or download."""
 from dataclasses import replace
 import tkinter as tk
-from tkinter import filedialog
+from .localized_dialogs import filedialog
 import webbrowser
 from . import theme
 from .diary_widgets import _frame,_label,_entry,_button,_Toolbar
