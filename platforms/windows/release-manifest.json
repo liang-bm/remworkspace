@@ -1,7 +1,7 @@
 {
   "platform": "windows",
   "architecture": "x64",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "desktop_spec": "platforms/windows/RemCompanion.spec",
   "desktop_build": "platforms/windows/Build-Desktop.ps1",
   "setup_build": "platforms/windows/Build-Setup.ps1",
@@ -12,6 +12,6 @@
   "excluded_user_content": ["models", "runtime", "engines", "rem-voice", "rem-voice2", "data", "background", "config/secrets.json"],
   "public_release_gate": "public-release-review.json: reviewed public config hash plus affirmative redistribution-rights attestation; current Rem assets are not preapproved",
   "voice_setup": "Speech starts off. Users explicitly install GPT-SoVITS prerequisites and import the separately downloaded inference ZIP or multipart manifest. Training datasets and personal API keys are not bundled.",
-  "artifacts": ["RemChat-0.1.0-windows-x64-setup.exe", "RemChat-0.1.0-windows-x64-portable.zip"],
+  "artifacts": ["RemChat-0.1.1-windows-x64-setup.exe", "RemChat-0.1.1-windows-x64-portable.zip"],
   "limitations": ["Unsigned Windows executable/installer", "No automated full installer lifecycle or GPU TTS synthesis certification"]
 }

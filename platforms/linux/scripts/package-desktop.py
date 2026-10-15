@@ -44,6 +44,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix=".remchat-package-", dir=str(output)) as temporary:
         stage = Path(temporary)
         shutil.copytree(payload / "desktop-app", stage / "desktop-app", symlinks=True)
+        if not (payload / "licenses").is_dir() or (payload / "licenses").is_symlink():
+            raise ValueError("Missing third-party notices; run scripts/collect_runtime_licenses.py with the build Python")
+        shutil.copytree(payload / "licenses", stage / "licenses")
         (stage / "config").mkdir()
         shutil.copy2(payload / "config/rem_companion.toml", stage / "config/rem_companion.toml")
         # Program-owned public download metadata is separate from user settings.
